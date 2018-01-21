@@ -108,7 +108,7 @@ class Util():
 		foldIndices: return value from generateFFoldIndices
 
 	outputs:
-		accr: float
+		accu: float
 	'''
 	def fFoldCrossValidation(self, X, labels, k, foldIndices):
 		f = len(foldIndices)
@@ -121,4 +121,9 @@ class Util():
 			test = X[foldIndices[i]]
 			testLabels = labels[foldIndices[i]]
 			accus.append(self.testKNNAccuracy(train, trainLabels, k, test, testLabels))
-		return sum(accus) / float(f)
+		accu = sum(accus) / float(f)
+		return accu
+
+
+
+
