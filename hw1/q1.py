@@ -3,12 +3,9 @@ import util
 
 def main():
 	Util = util.Util
-
 	u = Util()
-
 	testUtil(u)
 	
-
 def testUtil(u):
 	print('hello world!')
 	print(u.test())
