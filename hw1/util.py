@@ -1,4 +1,5 @@
 from sklearn.neighbors import NearestNeighbors
+from sklearn.linear_model import LinearRegression
 import numpy as np
 import random
 
@@ -24,7 +25,7 @@ class Util():
 		return result (num_data, 2)
 	'''
 	def genData(self, cen, num_data):
-		
+
 		result = []
 		for _ in range(num_data):
 			rand_index = random.randint(0, 9)
@@ -68,12 +69,56 @@ class Util():
 		queryLabels: numpy array (m, ), elements are either 0 or 1 indicating true class
 
 	output:
-		accu: float, indicating accuracy 
-		
+		accu: float, indicating accuracy
+
 	'''
 	def testKNNAccuracy(self, X, labels, k, query, queryLabels):
 		testQueryLabels = self.KNNWrapper(X, labels, k, query)
 		accu = float(np.sum(queryLabels == testQueryLabels)) / float(len(query))
+
+
+	'''
+	LR wrapper
+
+	inputs:
+		X : numpy array (n, 2)
+		labels: numpy array (n, ), elements are either 0 or 1 indicating class
+		query: numpy array (m, 2)
+
+	output:
+		queryLabels: numpy array (m, ), elements are either 0 or 1 indicating class
+	'''
+	def LRWrapper(self, X, labels, query):
+		if len(query) == 0:
+			return []
+
+		# call sklearn api to get indices
+		regr = LinearRegression()
+		regr.fit(X, labels)
+		pred = regr.predict(query)
+
+		# majority vote to produce label for each query
+		queryLabels = pred > 0
+		return queryLabels
+
+
+	'''
+	test LR accuracy
+
+	inputs:
+		X : numpy array (n, 2)
+		labels: numpy array (n, ), elements are either 0 or 1 indicating class
+		query: numpy array (m, 2)
+		queryLabels: numpy array (m, ), elements are either 0 or 1 indicating true class
+
+	output:
+		accu: float, indicating accuracy
+
+	'''
+	def testLRAccuracy(self, X, labels, query, queryLabels):
+		testQueryLabels = self.LRWrapper(X, labels, query)
+		accu = float(np.sum(queryLabels == testQueryLabels)) / float(len(query))
+		return accu
 
 	'''
 	generate index of f-fold cross validation
@@ -123,7 +168,3 @@ class Util():
 			accus.append(self.testKNNAccuracy(train, trainLabels, k, test, testLabels))
 		accu = sum(accus) / float(f)
 		return accu
-
-
-
-
