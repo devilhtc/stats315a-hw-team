@@ -3,6 +3,11 @@ from sklearn.linear_model import LinearRegression
 import numpy as np
 import random
 
+# constants
+LOW_LIM = -2
+HIGH_LIM = 3
+INTERVAL = 0.05
+
 class Util():
 	def test(self):
 		return 'testing complete'
@@ -98,7 +103,7 @@ class Util():
 		pred = regr.predict(query)
 
 		# majority vote to produce label for each query
-		queryLabels = pred > 0
+		queryLabels = pred > 0.5
 		return queryLabels
 
 
@@ -179,7 +184,7 @@ class Util():
 	outputs:
 		X, Y: meshgrid
 	'''
-	def generateMesh(self, xlow = LOW_LIM, xhigh = HIGH_LIM, dx = INTERVAL, ylow = LOW_LIM, xhigh = HIGH_LIM, dy = INTERVAL):
+	def generateMesh(self, xlow = LOW_LIM, xhigh = HIGH_LIM, dx = INTERVAL, ylow = LOW_LIM, yhigh = HIGH_LIM, dy = INTERVAL):
 		xs = np.arange(xlow, xhigh, dx)
 		ys = np.arange(ylow, yhigh, dy)
 		X, Y = np.meshgrid(xs, ys)
