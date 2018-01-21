@@ -1,3 +1,4 @@
+from sklearn.neighbors import NearestNeighbors
 import numpy as np
 import random
 
@@ -16,7 +17,7 @@ class Util():
 		mean_1 = (0, 1); cov_1 = [[1, 0], [0, 1]]
 		c_1 = np.random.multivariate_normal(mean_1, cov_1, (10, ))
 		return (c_0, c_1)
-		
+
 	'''
 		cen are centroids
 		num_data is the number of datasets
