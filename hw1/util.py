@@ -257,3 +257,35 @@ class Util():
 		plt.legend()
 		#'''
 		plt.savefig("./partB.png")
+		
+	'''
+	part C of problem 1
+
+	inputs:
+		X : numpy array (n, 2)
+		labels: numpy array (n, ), elements are either 0 or 1 indicating class
+		f: int, number of folds
+		ks: [int]
+
+	output:
+		void (but will save the figure for this part)
+	'''
+	def partC(self, X, labels, f, ks):
+		DoF  = []
+		N = float(X.shape[0])
+		foldIndices = self.generateFFoldIndices(X.shape[0], f)
+		accuMeans = []
+		accuStds = []
+		for k in ks:
+			DoF.append(N/k)
+			accuMean, accuStd = self.fFoldCrossValidation(X, labels, k, foldIndices)
+			accuMeans.append(accuMean)
+			accuStds.append(accuStd)
+			print k
+		plt.figure(1)
+		plt.plot(DoF, accuMeans)
+		plt.plot(DoF, accuStds)
+		#plt.xticks(DoF)
+		plt.xlabel('DoF')
+		plt.legend(['accu_mean', 'accu_std'])
+		plt.savefig('partC.png')

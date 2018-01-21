@@ -23,6 +23,7 @@ def testUtil(u):
 
 	ks = [1, 3, 5, 9, 15, 25, 45, 83, 151]
 	u.partB(ks, X, labels, query, queryLabels)
-
+	u.partC(X, labels, f, ks)
+	
 if __name__=='__main__':
 	main()
