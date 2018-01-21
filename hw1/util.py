@@ -421,11 +421,14 @@ class Util():
 		plt.clabel(ct1, lvls, inline = True, fmt = { 0.5: "KNN"}, fontsize = 12)
 		plt.clabel(ct2, lvls, inline = True, fmt = { 0.5: "Bayes"}, fontsize = 12)
 
-		plt.scatter(trainPos0[0], trainPos0[1], marker='o', s = 8, color = 'r')
-		plt.scatter(trainPos1[0], trainPos1[1], marker='o', s = 8, color = 'b')
+		plt.scatter(trainPos0[0], trainPos0[1], marker='o', s = 15, color = 'r', label = '0')
+		plt.scatter(trainPos1[0], trainPos1[1], marker='o', s = 15, color = 'b', label = '1')
 
 		plt.xlim([LOW_LIM, HIGH_LIM])
 		plt.ylim([LOW_LIM, HIGH_LIM])
+		plt.xlabel('X')
+		plt.ylabel('Y')
+		plt.legend()
 
 		plt.savefig('partD.png')
 
