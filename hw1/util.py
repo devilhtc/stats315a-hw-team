@@ -79,9 +79,10 @@ class Util():
 
 	inputs:
 		N: int
+		f: int
 
 	outputs:
-		folds: a list (length f) of list of integers (length N/f) indicating the indices for this fold
+		folds: a list (length f) of np array (length N/f) indicating the indices for this fold
 	'''
 	def generateFFoldIndices(self, N, f):
 		indices = range(N)
@@ -91,4 +92,6 @@ class Util():
 		folds = [[] for _ in range(f)]
 		for i in range(N):
 			folds[i%f].append(indices[i])
+		for i in range(f):
+			folds[i] = np.array(folds[i])
 		return folds
