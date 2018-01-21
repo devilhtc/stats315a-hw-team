@@ -75,7 +75,7 @@ class Util():
 	def testKNNAccuracy(self, X, labels, k, query, queryLabels):
 		testQueryLabels = self.KNNWrapper(X, labels, k, query)
 		accu = float(np.sum(queryLabels == testQueryLabels)) / float(len(query))
-
+		return accu
 
 	'''
 	LR wrapper
@@ -168,3 +168,53 @@ class Util():
 			accus.append(self.testKNNAccuracy(train, trainLabels, k, test, testLabels))
 		accu = sum(accus) / float(f)
 		return accu
+
+	''' 
+	generate a 2D mesh 
+
+	inputs:
+		xlow, xhigh, dx: start, stop and step of x-axis
+		ylow, yhigh, dy: start, stop and step of y-axis
+
+	outputs:
+		X, Y: meshgrid
+	'''
+	def generateMesh(self, xlow = LOW_LIM, xhigh = HIGH_LIM, dx = INTERVAL, ylow = LOW_LIM, xhigh = HIGH_LIM, dy = INTERVAL):
+		xs = np.arange(xlow, xhigh, dx)
+		ys = np.arange(ylow, yhigh, dy)
+		X, Y = np.meshgrid(xs, ys)
+		return X, Y
+
+	'''
+	convert a mesh grid to an array
+	'''
+	def meshToArray(self, X):
+		m, n = X.shape
+		xpos = np.reshape(X, (m*n, ))
+		return xpos
+
+	'''
+	convert an array of size (m*n, ) to a mesh grid
+	'''
+	def arrayToMesh(self, arr, m, n):
+		mesh = np.reshape(arr, (m, n))
+		return mesh
+
+	'''
+	convert a pair of mesh grid X, Y (both size (m, n)) to a np array of size (m*n, 2)
+	'''
+	def meshXYToArray(self, X, Y):
+		xArray = self.meshToArray(X)
+		yArray = self.meshToArray(X)
+		xyArray = np.stack([xArray, yArray])
+		return xyArray.T
+
+	'''
+	convert array of size (m*n, 2) to a XY mesh grid
+	'''
+	def arrayXYToMesh(self, arr, m, n):
+		xArray = arr[:,0]
+		yArray = arr[:,1]
+		return self.arrayToMesh(xArray, m, n), self.arrayToMesh(yArray, m, n)
+
+
