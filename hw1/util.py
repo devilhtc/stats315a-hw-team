@@ -4,6 +4,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 
+SEED = 985
+random.seed(SEED)
+np.random.seed( random.randint(0, SEED) + SEED ** 2 )
+
 # constants
 LOW_LIM = -2.0
 HIGH_LIM = 3.0
@@ -17,7 +21,7 @@ class Util():
 		Generate 10 centroids for each class
 	'''
 	def genCent(self):
-		#mean and conv for class 0
+		# mean and conv for class 0
 		mean_0 = (1, 0); cov_0 = [[1, 0], [0, 1]]
 		c_0 = np.random.multivariate_normal(mean_0, cov_0, (10, ))
 
@@ -26,12 +30,12 @@ class Util():
 		return (c_0, c_1)
 
 	'''
+		#### PART A ####
 		cen are centroids
 		num_data is the number of datasets
 		return result (num_data, 2)
 	'''
 	def genData(self, cen, num_data):
-
 		result = []
 		for _ in range(num_data):
 			rand_index = random.randint(0, 9)
@@ -39,6 +43,25 @@ class Util():
 			data = np.random.multivariate_normal(mean, cov)
 			result.append(data)
 		return np.stack(result)
+
+	'''
+	generatea n data points and label for each set of centroids
+
+	inputs:
+		centroids: a tuple (centroids_0, centroids_1), centroids_i is a np array (10, 2) or centroid locations
+		n: number of data points for each of the two classes
+
+	outputs:
+		X: np array (n, 2) 
+		labels: np array (n, ) of 0/1 labels
+	'''
+	def genDataAndLabel(self, centroids, n):
+		c0, c1 = centroids
+		data1 = self.genData(c0, n)
+		data2 = self.genData(c1, n)
+		X = np.concatenate((data1, data2))
+		labels = np.asarray([0]*n + [1]*n)
+		return X, labels
 
 	'''
 	KNN wrapper
@@ -50,7 +73,7 @@ class Util():
 		query: numpy array (m, 2)
 
 	output:
-		queryLabels: numpy array (m, ), elements are either 0 or 1 indicating class
+		queryPrediction: numpy array (m, ), elements range from 0 to 1 indicating the probability that it belongs to class 1
 	'''
 	def KNNWrapper(self, X, labels, k, query):
 		if len(query) == 0:
@@ -60,10 +83,9 @@ class Util():
 		nbrs = NearestNeighbors(n_neighbors=k, algorithm='ball_tree').fit(X)
 		distances, indices = nbrs.kneighbors(query)
 
-		# majority vote to produce label for each query
-
-		queryLabels = np.array([1 if 2 * np.sum(labels[ele]) > k else 0 for ele in indices])
-		return queryLabels
+		# return the proportion of label 1
+		queryPredictions = np.array([float(np.sum(labels[ele]))/float(k) for ele in indices])
+		return queryPredictions
 
 	'''
 	test KNN accuracy
@@ -80,7 +102,8 @@ class Util():
 
 	'''
 	def testKNNAccuracy(self, X, labels, k, query, queryLabels):
-		testQueryLabels = self.KNNWrapper(X, labels, k, query)
+		testQueryPredictions = self.KNNWrapper(X, labels, k, query)
+		testQueryLabels = np.array(testQueryPredictions > 0.5, dtype = np.int64)
 		accu = float(np.sum(queryLabels == testQueryLabels)) / float(len(query))
 		return accu
 
@@ -107,7 +130,6 @@ class Util():
 		# majority vote to produce label for each query
 		queryLabels = pred > 0.5
 		return queryLabels
-
 
 	'''
 	test LR accuracy
@@ -148,7 +170,6 @@ class Util():
 		for i in range(f):
 			folds[i] = np.array(folds[i])
 		return folds
-
 
 	'''
 	calculate accuracy of f-fold cross validation with a certain k
@@ -211,7 +232,7 @@ class Util():
 	'''
 	def meshXYToArray(self, X, Y):
 		xArray = self.meshToArray(X)
-		yArray = self.meshToArray(X)
+		yArray = self.meshToArray(Y)
 		xyArray = np.stack([xArray, yArray])
 		return xyArray.T
 
@@ -229,7 +250,6 @@ class Util():
 	def accuToErr(self, accus):
 		return [1.0 - accu for accu in accus]
 
-
 	'''
 	calculate the probability that point belongs to centroids (with sigma = 0.2)
 
@@ -240,12 +260,13 @@ class Util():
 	output:
 		p: sum of probabilities
 	'''
-	def pFromCentroids(self, centroids, point):
+	def pFromCentroids(self,point, centroids):
 		p = 0.0
 		sigma = 0.2
 		denomenator = 2.0 * sigma ** 2
 		for c in centroids:
 			p += np.exp( -np.sum(np.square(point - c)) / denomenator)
+		#print p
 		return p
 
 	'''
@@ -256,15 +277,15 @@ class Util():
 		a tuple (centroids_0, centroids_1), centroids_i is a np array (10, 2) or centroid locations
 
 	output:
-		labels: np array (m*n, ) of 0/1 indicating class
+		preds: np array (m*n, ) with elements between 0 and 1 indicating the probability that it belongs to class 1
 	'''
-	def labelsFromCentroids(self, points, centroids):
-		labels = []
+	def predsFromCentroids(self, points, centroids):
+		preds = []
 		for point in points:		
 			p0 = self.pFromCentroids(point, centroids[0])
 			p1 = self.pFromCentroids(point, centroids[1])
-			labels.append( 0 if p0 > p1 else 1 )
-		return np.array(labels)
+			preds.append( p1 / (p1 + p0) )
+		return np.array(preds)
 
 	'''
 	inputs:
@@ -301,6 +322,7 @@ class Util():
 		plt.legend()
 		plt.savefig("partB.png")
 
+		print('figure saved')
 		print
 
 	'''
@@ -313,7 +335,7 @@ class Util():
 		ks: list of k
 
 	output:
-		void (but will save the figure for this part)
+		kOpt: the k that gives maximum average accuracy
 	'''
 	def partC(self, X, labels, f, ks):
 		print('Calculating part C ... ')
@@ -327,7 +349,6 @@ class Util():
 		for k in ks:
 			print( 'k = '+str(k) )
 			accuMean, accuStd = self.fFoldCrossValidation(X, labels, k, foldIndices)
-
 			DoF.append(N / k)
 			accuMeans.append(accuMean)
 			accuStds.append(accuStd)
@@ -351,6 +372,7 @@ class Util():
 		
 		plt.savefig('partC.png')
 
+		print('figure saved')
 		print
 
 		# return the k with max accu mean
@@ -370,32 +392,44 @@ class Util():
 		void (but will save the figure for this part)
 	'''
 	def partD(self, train, trainLabels, k, centroids):
+		print('Calculating part D ... ')
+
 		numTrain = train.shape[0]
 		trainPos0 = train[:numTrain/2].T
 		trainPos1 = train[numTrain/2:].T
+
 		# generate array
 		X, Y = self.generateMesh()
 		xyArray = self.meshXYToArray(X, Y)
+
 		m, n = X.shape
 		# get prediction from KNN
-		knnLabelsArray = self.KNNWrapper(train, trainLabels, k, xyArray)
-
-		knnLabels = self.arrayToMesh(knnLabelsArray, m, n)
+		knnPredsArray = self.KNNWrapper(train, trainLabels, k, xyArray)
+		knnPreds = self.arrayToMesh(knnPredsArray, m, n)
 
 		# get prediction from Bayes
-		bayesLabelsArray = self.labelsFromCentroids(xyArray, centroids)
-		
-		bayesLabels = self.arrayToMesh(bayesLabelsArray, m, n)
+		bayesPredsArray = self.predsFromCentroids(xyArray, centroids)	
+		bayesPreds = self.arrayToMesh(bayesPredsArray, m, n)
 
-		plt.figure(3)
-		
-		plt.contour(X, Y, knnLabels)
-		plt.contour(X, Y, bayesLabels)
-		plt.scatter(trainPos0[0], trainPos0[1], color = 'r')
-		plt.scatter(trainPos1[0], trainPos1[1], color = 'b')
+		# plotting
+		plt.figure(3, figsize=(8, 8))
+
+		# use -0.1 and 1.1 as dummy contour levels
+		lvls = np.array([ 0.5 ])
+		ct1 = plt.contour(X, Y, knnPreds, lvls, colors = ['k'], label = '')
+		ct2 = plt.contour(X, Y, bayesPreds, lvls, colors = ['C1'])
+		plt.clabel(ct1, lvls, inline = True, fmt = { 0.5: "KNN"}, fontsize = 12)
+		plt.clabel(ct2, lvls, inline = True, fmt = { 0.5: "Bayes"}, fontsize = 12)
+
+		plt.scatter(trainPos0[0], trainPos0[1], marker='o', s = 8, color = 'r')
+		plt.scatter(trainPos1[0], trainPos1[1], marker='o', s = 8, color = 'b')
 
 		plt.xlim([LOW_LIM, HIGH_LIM])
 		plt.ylim([LOW_LIM, HIGH_LIM])
 
 		plt.savefig('partD.png')
+
+		print('figure saved')
 		print
+
+
