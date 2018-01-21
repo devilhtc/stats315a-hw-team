@@ -35,7 +35,7 @@ class Util():
 		result = []
 		for _ in range(num_data):
 			rand_index = random.randint(0, 9)
-			mean = cen[rand_index, :]; cov = [[1/5, 0], [0, 1/5]]
+			mean = cen[rand_index, :]; cov = [[1.0/5, 0], [0, 1.0/5]]
 			data = np.random.multivariate_normal(mean, cov)
 			result.append(data)
 		return np.stack(result)
