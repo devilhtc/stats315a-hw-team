@@ -249,5 +249,11 @@ class Util():
 
 
 
-		plt.plot(DoF, kNNAccuTest, DoF, kNNAccuTrain)
+		#plt.plot(DoF, kNNAccuTest, 'bo', DoF, kNNAccuTrain, 'ro')
+		#'''
+		plt.plot(DoF, kNNAccuTest, marker='s', linestyle='--', color='C1', label='test')
+		plt.plot(DoF, kNNAccuTrain, marker='s', linestyle='--', color='b', label='train')
+		plt.ylim(0, 1.0)
+		plt.legend()
+		#'''
 		plt.savefig("./partB.png")
