@@ -61,6 +61,7 @@ class Util():
 		distances, indices = nbrs.kneighbors(query)
 
 		# majority vote to produce label for each query
+
 		queryLabels = np.array([1 if 2*np.sum(labels[ele])>k else 0 for ele in indices])
 		return queryLabels
 
@@ -240,13 +241,13 @@ class Util():
 		kNNAccuTest = [0]*len(ks)
 		N = float(X.shape[0])
 		for i in range(len(ks)):
-			k = ks[0]
+			k = ks[i]
+			print (k)
 			DoF[i] = N/k
 			kNNAccuTest[i] = self.testKNNAccuracy(X, labels, k, query, queryLabels)
-			kNNAccuTrain[i] = self.testKNNAccuracy(X, labels, k, X, labels)
+			kNNAccuTrain[i] = self.testKNNAccuracy(X, labels,k,  X, labels)
 
 
 
-		plt.plot(DoF, kNNAccuTest, kNNAccuTrain)
-		plt.show()
-		#plt.save("./partB.png"")
+		plt.plot(DoF, kNNAccuTest, DoF, kNNAccuTrain)
+		plt.savefig("./partB.png")

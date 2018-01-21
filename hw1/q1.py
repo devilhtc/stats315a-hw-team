@@ -14,12 +14,12 @@ def testUtil(u):
 	data_1 = u.genData(c_0, n_train)
 	data_2 = u.genData(c_1, n_train)
 	X = np.concatenate((data_1, data_2))
-	labels = [0]*n_train + [1]*n_train
+	labels = np.asarray([0]*n_train + [1]*n_train)
 
 	data_1 = u.genData(c_0, n_test)
 	data_2 = u.genData(c_1, n_test)
 	query = np.concatenate((data_1, data_2))
-	queryLabels = [0]*n_test + [1]*n_test
+	queryLabels = np.asarray([0]*n_test + [1]*n_test)
 
 	ks = [1, 3, 5, 9, 15, 25, 45, 83, 151]
 	u.partB(ks, X, labels, query, queryLabels)
