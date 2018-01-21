@@ -5,8 +5,8 @@ import numpy as np
 import random
 
 # constants
-LOW_LIM = -2
-HIGH_LIM = 3
+LOW_LIM = -2.0
+HIGH_LIM = 3.0
 INTERVAL = 0.05
 
 class Util():
@@ -62,7 +62,7 @@ class Util():
 
 		# majority vote to produce label for each query
 
-		queryLabels = np.array([1 if 2*np.sum(labels[ele])>k else 0 for ele in indices])
+		queryLabels = np.array([1 if 2 * np.sum(labels[ele]) > k else 0 for ele in indices])
 		return queryLabels
 
 	'''
@@ -173,8 +173,7 @@ class Util():
 			test = X[foldIndices[i]]
 			testLabels = labels[foldIndices[i]]
 			accus.append(self.testKNNAccuracy(train, trainLabels, k, test, testLabels))
-		accu = sum(accus) / float(f)
-		return accu
+		return np.mean(accus), np.std(accus)
 
 	'''
 	generate a 2D mesh
@@ -220,44 +219,90 @@ class Util():
 	convert array of size (m*n, 2) to a XY mesh grid
 	'''
 	def arrayXYToMesh(self, arr, m, n):
-		xArray = arr[:,0]
-		yArray = arr[:,1]
+		xArray = arr.T[0]
+		yArray = arr.T[1]
 		return self.arrayToMesh(xArray, m, n), self.arrayToMesh(yArray, m, n)
 
+	'''
+	convert a list of accuracy to a list of error
+	'''
+	def accuToErr(self, accus):
+		return [1.0 - accu for accu in accus]
+
+
+	'''
+	calculate the probability that point belongs to centroids (with sigma = 0.2)
+
+	inputs:
+		point: np array (2, )
+		centroids: np array (10, 2)
+
+	output:
+		p: sum of probabilities
+	'''
+	def pFromCentroids(self, centroids, point):
+		p = 0.0
+		sigma = 0.2
+		denomenator = 2.0 * sigma ** 2
+		for c in centroids:
+			p += np.exp( -np.sum(np.square(point - c)) / denomenator)
+		return p
+
+	'''
+	get the label of all points from points and centroids
+
+	inputs:
+		point: np array (m*n, )
+		a tuple (centroids_0, centroids_1), centroids_i is a np array (10, 2) or centroid locations
+
+	output:
+		labels: np array (m*n, ) of 0/1 indicating class
+	'''
+	def labelsFromCentroids(self, points, centroids):
+		labels = []
+		for point in points:		
+			p0 = self.pFromCentroids(point, centroids[0])
+			p1 = self.pFromCentroids(point, centroids[1])
+			labels.append( 0 if p0 > p1 else 1 )
+		return np.array(labels)
 
 	'''
 	inputs:
 		ks: list of k
 		X: training data, (n, 2)
 		labels: training labels (n, ) 1 or 0
-		quesr: test data, (n, 2)
+		query: test data, (n, 2)
+		queryLabels: test labels, (n, ) 1 or 0
 
 	outputs:
-		X, Y: meshgrid
+		void (but will save the figure for this part)
 	'''
 	def partB(self, ks, X, labels, query, queryLabels):
-		DoF  = [0]*len(ks)
-		kNNAccuTrain = [0]*len(ks)
-		kNNAccuTest = [0]*len(ks)
+		print('Calculating part B ... ')
+		DoF  = []
+		kNNAccuTrain = []
+		kNNAccuTest = []
 		N = float(X.shape[0])
-		for i in range(len(ks)):
-			k = ks[i]
-			print (k)
-			DoF[i] = N/k
-			kNNAccuTest[i] = self.testKNNAccuracy(X, labels, k, query, queryLabels)
-			kNNAccuTrain[i] = self.testKNNAccuracy(X, labels,k,  X, labels)
 
+		for k in ks:
+			print( 'k = '+str(k) )
+			DoF.append(N / k)
+			kNNAccuTest.append( self.testKNNAccuracy(X, labels, k, query, queryLabels) )
+			kNNAccuTrain.append( self.testKNNAccuracy(X, labels,k,  X, labels) )
 
+		# plot two lines: train and test
+		plt.plot(DoF, self.accuToErr(kNNAccuTest), marker='s', linestyle='--', color='C1', label='test')
+		plt.plot(DoF, self.accuToErr(kNNAccuTrain), marker='s', linestyle='--', color='b', label='train')
 
-		#plt.plot(DoF, kNNAccuTest, 'bo', DoF, kNNAccuTrain, 'ro')
-		#'''
-		plt.plot(DoF, kNNAccuTest, marker='s', linestyle='--', color='C1', label='test')
-		plt.plot(DoF, kNNAccuTrain, marker='s', linestyle='--', color='b', label='train')
-		plt.ylim(0, 1.0)
+		# set plot parameters
+		plt.ylim(0, 0.6)
+		plt.xlabel('DoF (N/k)')
+		plt.ylabel('Error rate')
 		plt.legend()
-		#'''
-		plt.savefig("./partB.png")
-		
+		plt.savefig("partB.png")
+
+		print
+
 	'''
 	part C of problem 1
 
@@ -265,27 +310,92 @@ class Util():
 		X : numpy array (n, 2)
 		labels: numpy array (n, ), elements are either 0 or 1 indicating class
 		f: int, number of folds
-		ks: [int]
+		ks: list of k
 
 	output:
 		void (but will save the figure for this part)
 	'''
 	def partC(self, X, labels, f, ks):
+		print('Calculating part C ... ')
 		DoF  = []
-		N = float(X.shape[0])
-		foldIndices = self.generateFFoldIndices(X.shape[0], f)
 		accuMeans = []
 		accuStds = []
+		N = float(X.shape[0])
+
+		foldIndices = self.generateFFoldIndices(X.shape[0], f)
+
 		for k in ks:
-			DoF.append(N/k)
+			print( 'k = '+str(k) )
 			accuMean, accuStd = self.fFoldCrossValidation(X, labels, k, foldIndices)
+
+			DoF.append(N / k)
 			accuMeans.append(accuMean)
 			accuStds.append(accuStd)
-			print k
+
 		plt.figure(1)
-		plt.plot(DoF, accuMeans)
-		plt.plot(DoF, accuStds)
-		#plt.xticks(DoF)
-		plt.xlabel('DoF')
-		plt.legend(['accu_mean', 'accu_std'])
+
+		# generate figure and subplot
+		fig, ax1 = plt.subplots()
+		
+		# first part, plot means
+		ax1.plot(DoF, accuMeans, marker='s', linestyle='--', color='C1', label='accu_mean')
+		ax1.set_xlabel('DoF (N/k)')
+		ax1.set_ylabel('accu_mean', color='C1')
+		ax1.tick_params('y', colors='C1')
+
+		# second part, plot stds
+		ax2 = ax1.twinx()
+		ax2.plot(DoF, accuStds, marker='s', linestyle='--', color='b', label='accu_std')
+		ax2.set_ylabel('accu_std', color='b')
+		ax2.tick_params('y', colors='b')
+		
 		plt.savefig('partC.png')
+
+		print
+
+		# return the k with max accu mean
+		maxIndex = max([(accuMeans[i], i) for i in range(len(accuMeans))])[1]
+		return ks[maxIndex]
+
+	'''
+	part D of problem 1
+
+	inputs:
+		train : numpy array (n, 2) (renamed from X to avoid confusion with meshgrid)
+		trainLabels: numpy array (n, ), elements are either 0 or 1 indicating class
+		k: optimal k found in part C
+		centroids: a tuple (centroids_0, centroids_1), centroids_i is a np array (10, 2) or centroid locations
+
+	output:
+		void (but will save the figure for this part)
+	'''
+	def partD(self, train, trainLabels, k, centroids):
+		numTrain = train.shape[0]
+		trainPos0 = train[:numTrain/2].T
+		trainPos1 = train[numTrain/2:].T
+		# generate array
+		X, Y = self.generateMesh()
+		xyArray = self.meshXYToArray(X, Y)
+		m, n = X.shape
+		# get prediction from KNN
+		knnLabelsArray = self.KNNWrapper(train, trainLabels, k, xyArray)
+
+		knnLabels = self.arrayToMesh(knnLabelsArray, m, n)
+
+		# get prediction from Bayes
+		bayesLabelsArray = self.labelsFromCentroids(xyArray, centroids)
+		
+		bayesLabels = self.arrayToMesh(bayesLabelsArray, m, n)
+
+		plt.figure(3)
+		
+		plt.contour(X, Y, knnLabels)
+		plt.contour(X, Y, bayesLabels)
+		plt.scatter(trainPos0[0], trainPos0[1], color = 'r')
+		plt.scatter(trainPos1[0], trainPos1[1], color = 'b')
+
+		plt.xlim([LOW_LIM, HIGH_LIM])
+		plt.ylim([LOW_LIM, HIGH_LIM])
+
+		plt.savefig('partD.png')
+		print
