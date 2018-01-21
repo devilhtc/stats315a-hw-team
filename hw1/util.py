@@ -50,7 +50,7 @@ class Util():
 			return []
 
 		# call sklearn api to get indices
-		nbrs = NearestNeighbors(n_neighbors=2, algorithm='ball_tree').fit(X)
+		nbrs = NearestNeighbors(n_neighbors=k, algorithm='ball_tree').fit(X)
 		distances, indices = nbrs.kneighbors(query)
 
 		# majority vote to produce label for each query
@@ -73,7 +73,7 @@ class Util():
 	'''
 	def testKNNAccuracy(self, X, labels, k, query, queryLabels):
 		testQueryLabels = self.KNNWrapper(X, labels, k, query)
-		accu = float(np.sum(queryLabels*testQueryLabels)) / float(len(query))
+		accu = float(np.sum(queryLabels == testQueryLabels)) / float(len(query))
 
 	'''
 	generate index of f-fold cross validation
@@ -96,3 +96,29 @@ class Util():
 		for i in range(f):
 			folds[i] = np.array(folds[i])
 		return folds
+
+
+	'''
+	calculate accuracy of f-fold cross validation with a certain k
+
+	inputs:
+		X : numpy array (n, 2)
+		labels: numpy array (n, ), elements are either 0 or 1 indicating class
+		k: int
+		foldIndices: return value from generateFFoldIndices
+
+	outputs:
+		accr: float
+	'''
+	def fFoldCrossValidation(self, X, labels, k, foldIndices):
+		f = len(foldIndices)
+		accus = []
+		for i in range(f):
+			trainFolds = [X[foldIndices[j]] for j in range(f) if j != i]
+			labelFolds = [labels[foldIndices[j]] for j in range(f) if j != i]
+			train = np.concatenate(trainFolds)
+			trainLabels = np.concatenate(labelFolds)
+			test = X[foldIndices[i]]
+			testLabels = labels[foldIndices[i]]
+			accus.append(self.testKNNAccuracy(train, trainLabels, k, test, testLabels))
+		return sum(accus) / float(f)
