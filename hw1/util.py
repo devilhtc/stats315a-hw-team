@@ -1,5 +1,6 @@
 from sklearn.neighbors import NearestNeighbors
 from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
 import numpy as np
 import random
 
@@ -174,8 +175,8 @@ class Util():
 		accu = sum(accus) / float(f)
 		return accu
 
-	''' 
-	generate a 2D mesh 
+	'''
+	generate a 2D mesh
 
 	inputs:
 		xlow, xhigh, dx: start, stop and step of x-axis
@@ -223,3 +224,29 @@ class Util():
 		return self.arrayToMesh(xArray, m, n), self.arrayToMesh(yArray, m, n)
 
 
+	'''
+	inputs:
+		ks: list of k
+		X: training data, (n, 2)
+		labels: training labels (n, ) 1 or 0
+		quesr: test data, (n, 2)
+
+	outputs:
+		X, Y: meshgrid
+	'''
+	def partB(self, ks, X, labels, query, queryLabels):
+		DoF  = [0]*len(ks)
+		kNNAccuTrain = [0]*len(ks)
+		kNNAccuTest = [0]*len(ks)
+		N = float(X.shape[0])
+		for i in range(len(ks)):
+			k = ks[0]
+			DoF[i] = N/k
+			kNNAccuTest[i] = self.testKNNAccuracy(X, labels, k, query, queryLabels)
+			kNNAccuTrain[i] = self.testKNNAccuracy(X, labels, k, X, labels)
+
+
+
+		plt.plot(DoF, kNNAccuTest, kNNAccuTrain)
+		plt.show()
+		#plt.save("./partB.png"")

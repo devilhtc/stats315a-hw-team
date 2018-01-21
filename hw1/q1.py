@@ -8,18 +8,21 @@ def main():
 
 def testUtil(u):
 	#print('hello world!')
+	n_train = 100;
+	n_test = 10000;
 	c_0, c_1 = u.genCent()
-	data_1 = u.genData(c_0, 100)
-	data_2 = u.genData(c_1, 100)
+	data_1 = u.genData(c_0, n_train)
+	data_2 = u.genData(c_1, n_train)
 	X = np.concatenate((data_1, data_2))
-	labels = [0]*100 + [1]*100
+	labels = [0]*n_train + [1]*n_train
 
-	data_1 = u.genData(c_0, 1000)
-	data_2 = u.genData(c_1, 1000)
+	data_1 = u.genData(c_0, n_test)
+	data_2 = u.genData(c_1, n_test)
 	query = np.concatenate((data_1, data_2))
-	queryLabels = [0]*1000 + [1]*1000
+	queryLabels = [0]*n_test + [1]*n_test
 
-	print(u.testLRAccuracy(X, labels, query, queryLabels))
+	ks = [1, 3, 5, 9, 15, 25, 45, 83, 151]
+	u.partB(ks, X, labels, query, queryLabels)
 
 if __name__=='__main__':
 	main()
