@@ -314,17 +314,14 @@ class Util():
 		LRAccuTest = self.testLRAccuracy(X, labels, query, queryLabels)
 		LRAccuTrain = self.testLRAccuracy(X, labels, X, labels)
 
-
-
 		# plot two lines: train and test
-		plt.plot(DoF, self.accuToErr(kNNAccuTest), marker='s', linestyle='--', color='C1', label='test')
 		plt.plot(DoF, self.accuToErr(kNNAccuTrain), marker='s', linestyle='--', color='b', label='train')
-		plt.scatter(75, 1-LRAccuTest, label = 'linear test')
-		plt.scatter(75, 1-LRAccuTrain, label = 'linear train')
-
-
+		plt.plot(DoF, self.accuToErr(kNNAccuTest), marker='s', linestyle='--', color='C1', label='test')
+		plt.scatter([3], [1-LRAccuTrain], s = 200, marker='D', alpha = 0.5, label = 'linear train')
+		plt.scatter([3], [1-LRAccuTest], s = 200, marker='D', alpha = 0.5, label = 'linear test')
+		
 		# set plot parameters
-		plt.ylim(0, .6)
+		plt.ylim(0, 0.5)
 		plt.xlabel('DoF (N/k)')
 		plt.ylabel('Error rate')
 		plt.legend()
