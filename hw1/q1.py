@@ -14,7 +14,7 @@ def testUtil(u):
 	f = 10
 
 	centroids = u.genCent()
-	
+
 	X, labels = u.genDataAndLabel(centroids, nTrain)
 	query, queryLabels = u.genDataAndLabel(centroids, nTest)
 
@@ -28,4 +28,6 @@ def testUtil(u):
 	u.partD(X, labels, kOpt, centroids)
 
 if __name__=='__main__':
-	main()
+	Util = util.Util
+	u = Util()
+	testUtil(u)

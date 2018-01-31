@@ -52,7 +52,7 @@ class Util():
 		n: number of data points for each of the two classes
 
 	outputs:
-		X: np array (n, 2) 
+		X: np array (n, 2)
 		labels: np array (n, ) of 0/1 labels
 	'''
 	def genDataAndLabel(self, centroids, n):
@@ -127,8 +127,8 @@ class Util():
 		regr.fit(X, labels)
 		pred = regr.predict(query)
 
-		# majority vote to produce label for each query
-		queryLabels = pred > 0.5
+		
+		queryLabels = pred >= 0.5
 		return queryLabels
 
 	'''
@@ -281,7 +281,7 @@ class Util():
 	'''
 	def predsFromCentroids(self, points, centroids):
 		preds = []
-		for point in points:		
+		for point in points:
 			p0 = self.pFromCentroids(point, centroids[0])
 			p1 = self.pFromCentroids(point, centroids[1])
 			preds.append( p1 / (p1 + p0) )
@@ -311,12 +311,20 @@ class Util():
 			kNNAccuTest.append( self.testKNNAccuracy(X, labels, k, query, queryLabels) )
 			kNNAccuTrain.append( self.testKNNAccuracy(X, labels,k,  X, labels) )
 
+		LRAccuTest = self.testLRAccuracy(X, labels, query, queryLabels)
+		LRAccuTrain = self.testLRAccuracy(X, labels, X, labels)
+
+
+
 		# plot two lines: train and test
 		plt.plot(DoF, self.accuToErr(kNNAccuTest), marker='s', linestyle='--', color='C1', label='test')
 		plt.plot(DoF, self.accuToErr(kNNAccuTrain), marker='s', linestyle='--', color='b', label='train')
+		plt.scatter(75, 1-LRAccuTest, label = 'linear test')
+		plt.scatter(75, 1-LRAccuTrain, label = 'linear train')
+
 
 		# set plot parameters
-		plt.ylim(0, 0.6)
+		plt.ylim(0, .6)
 		plt.xlabel('DoF (N/k)')
 		plt.ylabel('Error rate')
 		plt.legend()
@@ -357,7 +365,7 @@ class Util():
 
 		# generate figure and subplot
 		fig, ax1 = plt.subplots()
-		
+
 		# first part, plot means
 		ax1.plot(DoF, accuMeans, marker='s', linestyle='--', color='C1', label='accu_mean')
 		ax1.set_xlabel('DoF (N/k)')
@@ -369,7 +377,7 @@ class Util():
 		ax2.plot(DoF, accuStds, marker='s', linestyle='--', color='b', label='accu_std')
 		ax2.set_ylabel('accu_std', color='b')
 		ax2.tick_params('y', colors='b')
-		
+
 		plt.savefig('partC.png')
 
 		print('figure saved')
@@ -408,7 +416,7 @@ class Util():
 		knnPreds = self.arrayToMesh(knnPredsArray, m, n)
 
 		# get prediction from Bayes
-		bayesPredsArray = self.predsFromCentroids(xyArray, centroids)	
+		bayesPredsArray = self.predsFromCentroids(xyArray, centroids)
 		bayesPreds = self.arrayToMesh(bayesPredsArray, m, n)
 
 		# plotting
@@ -434,5 +442,3 @@ class Util():
 
 		print('figure saved')
 		print
-
-
