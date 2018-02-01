@@ -127,7 +127,6 @@ class Util():
 		regr.fit(X, labels)
 		pred = regr.predict(query)
 
-		
 		queryLabels = pred >= 0.5
 		return queryLabels
 
@@ -142,7 +141,6 @@ class Util():
 
 	output:
 		accu: float, indicating accuracy
-
 	'''
 	def testLRAccuracy(self, X, labels, query, queryLabels):
 		testQueryLabels = self.LRWrapper(X, labels, query)
@@ -181,7 +179,8 @@ class Util():
 		foldIndices: return value from generateFFoldIndices
 
 	outputs:
-		accu: float
+		accu_mean: float
+		std: float
 	'''
 	def fFoldCrossValidation(self, X, labels, k, foldIndices):
 		f = len(foldIndices)
@@ -419,7 +418,7 @@ class Util():
 		# plotting
 		plt.figure(3, figsize=(8, 8))
 
-		# use -0.1 and 1.1 as dummy contour levels
+		# use 0.5 as decision boundary contour levels
 		lvls = np.array([ 0.5 ])
 		ct1 = plt.contour(X, Y, knnPreds, lvls, colors = ['k'], label = '')
 		ct2 = plt.contour(X, Y, bayesPreds, lvls, colors = ['C1'])

@@ -22,10 +22,10 @@ def testUtil(u):
 	u.partB(ks, X, labels, query, queryLabels)
 
 	# part C, choose optimal k by cross validation
-	#kOpt = u.partC(X, labels, f, ks)
+	kOpt = u.partC(X, labels, f, ks)
 
 	# part D, plot scatter of train and decision boundaries for KNN with kOpt and bayes
-	#u.partD(X, labels, kOpt, centroids)
+	u.partD(X, labels, kOpt, centroids)
 
 if __name__=='__main__':
 	Util = util.Util
