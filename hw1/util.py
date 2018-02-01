@@ -313,6 +313,8 @@ class Util():
 		LRAccuTest = self.testLRAccuracy(X, labels, query, queryLabels)
 		LRAccuTrain = self.testLRAccuracy(X, labels, X, labels)
 
+		plt.figure(0)
+
 		# plot two lines: train and test
 		plt.plot(DoF, self.accuToErr(kNNAccuTrain), marker='s', linestyle='--', color='b', label='train')
 		plt.plot(DoF, self.accuToErr(kNNAccuTest), marker='s', linestyle='--', color='C1', label='test')
@@ -357,23 +359,17 @@ class Util():
 			accuMeans.append(accuMean)
 			accuStds.append(accuStd)
 
+		accuMeans = np.array(accuMeans)
+		accuStds = np.array(accuStds)
 		plt.figure(1)
 
-		# generate figure and subplot
-		fig, ax1 = plt.subplots()
-
-		# first part, plot means
-		ax1.plot(DoF, accuMeans, marker='s', linestyle='--', color='C1', label='accu_mean')
-		ax1.set_xlabel('DoF (N/k)')
-		ax1.set_ylabel('accu_mean', color='C1')
-		ax1.tick_params('y', colors='C1')
-
-		# second part, plot stds
-		ax2 = ax1.twinx()
-		ax2.plot(DoF, accuStds, marker='s', linestyle='--', color='b', label='accu_std')
-		ax2.set_ylabel('accu_std', color='b')
-		ax2.tick_params('y', colors='b')
-
+		plt.xlabel('DoF (N/k)')
+		plt.ylabel('Accuracy')
+		plt.ylim(0.0, 1.0)
+		plt.plot(DoF, accuMeans, marker = 's', color = 'C1', label='accu_mean')
+		plt.plot(DoF, accuMeans - accuStds, color = 'b', linestyle = '--', label = '1 std interval')
+		plt.plot(DoF, accuMeans + accuStds, color = 'b', linestyle = '--')
+		plt.legend()
 		plt.savefig('partC.png')
 
 		print('figure saved')

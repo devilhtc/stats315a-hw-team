@@ -4,9 +4,9 @@ import util
 def main():
 	Util = util.Util
 	u = Util()
-	testUtil(u)
+	solve(u)
 
-def testUtil(u):
+def solve(u):
 	#print('hello world!')
 	nTrain = 100
 	nTest = 10000
@@ -24,10 +24,9 @@ def testUtil(u):
 	# part C, choose optimal k by cross validation
 	kOpt = u.partC(X, labels, f, ks)
 
+	print 'optimal k is', kOpt
 	# part D, plot scatter of train and decision boundaries for KNN with kOpt and bayes
 	u.partD(X, labels, kOpt, centroids)
 
 if __name__=='__main__':
-	Util = util.Util
-	u = Util()
-	testUtil(u)
+	main()
