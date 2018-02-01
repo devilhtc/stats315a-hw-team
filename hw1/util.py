@@ -365,7 +365,7 @@ class Util():
 
 		plt.xlabel('DoF (N/k)')
 		plt.ylabel('Accuracy')
-		plt.ylim(0.0, 1.0)
+		plt.ylim(0.5, 0.95)
 		plt.plot(DoF, accuMeans, marker = 's', color = 'C1', label='accu_mean')
 		plt.plot(DoF, accuMeans - accuStds, color = 'b', linestyle = '--', label = '1 std interval')
 		plt.plot(DoF, accuMeans + accuStds, color = 'b', linestyle = '--')
