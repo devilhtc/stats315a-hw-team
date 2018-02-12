@@ -3,14 +3,42 @@ import time
 
 VERBOSE_DEFAULT = True
 
-#def get_fold_Xys(X, y, fold_idx):
 
+# get X_train, y_train, X_test, y_test
+# all preprocessed
+def get_spam_Xy_train_test(data_filename, indicator_filename):
+    X, y = get_spam_Xy_all(data_filename)
+    train_test_indicator = readin(indicator_filename)
+    train_idx, test_idx = get_train_test_idx(train_test_indicator)
+    X_train, y_train = X[train_idx], y[train_idx]
+    X_test, y_test = X[test_idx], y[test_idx]
+    return X_train, y_train, X_test, y_test
 
+# get the whole X and y from file
+# if raw, return unprocessed
+def get_spam_Xy_all(filename, raw = False):
+    data_array = readin(filename)
+    X, y = data_array[:, :-1], data_array[:, -1:]
+    if raw:
+        return X, y
+    X2 = preprocess(X)
+    return X2, y
 
+# get the current fold of data based in idx
+# return X_train, y_train, X_test, y_test
+def get_fold_Xys(X, y, fold_idx):
+    n, p = X.shape
+    train_idx = np.array([i for i in range(n) if i not in fold_idx])
+    test_idx = np.array(fold_idx)
+    X_train, y_train = X[train_idx], y[train_idx]
+    X_test, y_test = X[test_idx], y[test_idx]
+    return X_train, y_train, X_test, y_test
 
 # generate indices of f folds of n
-def generate_fold_idx(n, f):
-    shuffled_idx = np.random.shuffle(np.arange(n))
+# output a list of lists of indices
+def generate_fold_idxs(n, f):
+    shuffled_idx = np.arange(n)
+    np.random.shuffle(shuffled_idx)
     out = [[] for _ in range(f)]
     for i in range(n):
         out[i%f].append(shuffled_idx[i])
@@ -177,6 +205,30 @@ class SFModel(object):
 
         self.coefficients.append(beta_to_add)
 
+    # get coefficient matrix of shape (p+1, p)
+    # where the i_th column is the the coefficient at the i_th step
+    # if an argument is given (an index), return 
+    def get_coefficient_matrix(self, i = None):
+        if i is not None:
+            betas = np.stack([self.coefficients[i]])
+        else:
+            betas = np.stack(self.coefficients)
+        return betas.T
+
+    # make a prediction on X0 (m, p) at all steps
+    # return a matrix of shape (m, 1) 
+    def predict_at_ith_steps(self, X0, i):
+        m, p = X0.shape
+        assert p == self.p, 'dimensionality mismatch, this models is trained for p = {0} but the input dimension is {1}!'.format(self.p, p)
+
+        # augment X0 and get coefficient matrix
+        X0_augmented = augment(X0)
+        cm = self.get_coefficient_matrix(i - 1)
+
+        # X0_augmented (m, p+1), cm (p+1, p), y0_hat (m, p)
+        y0_hat = X0_augmented.dot(cm)
+        return y0_hat
+
     # make a prediction on X0 (m, p) at all steps
     # return a matrix of shape (m, p) 
     # where the ij_th element is the i_th input predicted at the j_th step
@@ -191,13 +243,6 @@ class SFModel(object):
         # X0_augmented (m, p+1), cm (p+1, p), y0_hat (m, p)
         y0_hat = X0_augmented.dot(cm)
         return y0_hat
-
-    # get coefficient matrix of shape (p+1, p)
-    # where the i_th column is the the coefficient at the i_th step
-    def get_coefficient_matrix(self):
-        betas = np.stack(self.coefficients)
-        return betas.T
-
 
 
 '''

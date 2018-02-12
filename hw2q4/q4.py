@@ -6,11 +6,23 @@ np.random.seed(315)
 data_dir = 'data/'
 data_filename = 'spam.data.txt'
 indicator_filename = 'spam.traintest.txt'
+num_folds = 10
 
 ### tests begin
+def test_folds():
+	X, y, _, _ = get_all_data()
+	n, p = X.shape
+	print X.shape
+	fold_idxs = u.generate_fold_idxs(n, num_folds)
+	for fold_idx in fold_idxs:
+		X_train, y_train, X_test, y_test = u.get_fold_Xys(X, y, fold_idx)
+		print 
+		print 'current fold indices have length', len(fold_idx)
+		print 'training set shapes:', X_train.shape, y_train.shape
+		print 'test set shapes:', X_test.shape, y_test.shape
 
 def test_dividing_train_test():
-	X_train, y_train, X_test, y_test = get_spam_Xy_train_test()
+	X_train, y_train, X_test, y_test = get_all_data()
 	print X_train.shape
 	print y_train.shape
 	print X_test.shape
@@ -22,8 +34,9 @@ def test_indexing():
 	print A[idx]
 
 def test_preprocess():
-	X, y = get_spam_Xy_all(raw = True)
-	X2, y = get_spam_Xy_all()
+	filename = data_dir + data_filename
+	X, y = u.get_spam_Xy_all(filename, raw = True)
+	X2, y = u.get_spam_Xy_all(filename)
 
 	print X[:3]
 	print X2[:3]
@@ -47,9 +60,12 @@ def test_model_1():
 def test_model_2():
 	n = 10
 	p = 3
+	# generate some random data
 	X = np.random.randn(n, p) * 2
 	beta = np.random.randn(p, 1) * 3
 	y = X.dot(beta) + np.random.randn(n, 1)
+
+	# try build a model on it
 	model = u.SFModel(X, y)
 	model.build()
 	print 'indices (in the order it is selected) are', model.selected_indices
@@ -61,32 +77,20 @@ def test_import():
 
 ### tests end
 
-
 ### helper functions start
+def get_all_data():
+	f1 = data_dir + data_filename # data filename
+	f2 = data_dir + indicator_filename # indicator filename
+	return u.get_spam_Xy_train_test(f1, f2)
 
-# get the whole X and y from file
-# if raw, return unprocessed
-def get_spam_Xy_all(raw = False):
-	filename = data_dir + data_filename
-	data_array = u.readin(filename)
-	X, y = data_array[:, :-1], data_array[:, -1:]
-	if raw:
-		return X, y
-	X2 = u.preprocess(X)
-	return X2, y
+### helper functions end
 
-# get X_train, y_train, X_test, y_test
-# all preprocessed
-def get_spam_Xy_train_test():
-	X, y = get_spam_Xy_all()
-	train_test_indicator = u.readin(data_dir + indicator_filename)
-	train_idx, test_idx = u.get_train_test_idx(train_test_indicator)
-	X_train, y_train = X[train_idx], y[train_idx]
-	X_test, y_test = X[test_idx], y[test_idx]
-	return X_train, y_train, X_test, y_test
+'''                     '''
+'''      hw begins!     ''' 
+'''                     '''
 
 def main():
-	test_dividing_train_test()
+	test_folds()
 
 
 
