@@ -103,6 +103,7 @@ class SFModel(object):
             self.regress_on_current_subset()
 
     # perform linear regression on the current selected index
+    # add coefficient to self.coefficients
     def regress_on_current_subset(self):
         pass
 
@@ -110,13 +111,22 @@ class SFModel(object):
     # return a matrix of shape (m, p) 
     # where the ij_th element is the i_th input predicted at the j_th step
     def predict_at_all_steps(self, X0):
-        pass
+        m, p = X0.shape
+        assert p==self.p, 'dimensionality mismatch, this models is trained for p = {0} but the input dimension is {1}!'.format(self.p, p)
+
+        # augment X0 and get coefficient matrix
+        X0_augmented = np.concatenate( (np.ones(m,1), X0), axis = 1 )
+        cm = self.get_coefficient_matrix()
+
+        # X0_augmented (m, p+1), cm (p+1, p), y0_hat (m, p)
+        y0_hat = X0_augmented.dot(cm)
+        return y0_hat
 
     # get coefficient matrix of shape (p+1, p)
     # where the i_th column is the the coefficient at the i_th step
     def get_coefficient_matrix(self):
-        pass
-
+        betas = np.stack(self.coefficients)
+        return betas.T
 
 
 '''
