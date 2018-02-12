@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import util as u
 
 np.random.seed(315)
@@ -78,6 +79,7 @@ def test_import():
 ### tests end
 
 ### helper functions start
+
 def get_all_data():
 	f1 = data_dir + data_filename # data filename
 	f2 = data_dir + indicator_filename # indicator filename
@@ -85,12 +87,81 @@ def get_all_data():
 
 ### helper functions end
 
-'''                     '''
-'''      hw begins!     ''' 
-'''                     '''
+'''                      '''
+'''                      '''
+'''       HW BEGINS      ''' 
+'''                      '''
+'''                      '''
+
+def partF():
+	X, y, _, _ = get_all_data()
+	n, p = X.shape
+	steps = np.arange(p)
+
+	# train and test model
+	model = u.train_model(X, y)
+	y_hat = model.predict_at_all_steps(X)
+	y_hat_binary = (y_hat > 0.5)
+	y_augmented = np.repeat(y, p, axis = 1)
+
+	# 1. plot rss vs step
+	rss = np.sum(np.power(y_hat - y_augmented, 2), axis = 0)
+	plt.figure('f1')
+	plt.plot(steps, rss)
+	plt.xlabel('step')
+	plt.ylabel('rss')
+	plt.savefig('partF1.png')
+
+	# 2. plot misclassification error vs step
+	err = np.sum( np.abs(y_hat_binary - y_augmented), axis = 0) / float(n)
+	plt.figure('f2')
+	plt.plot(steps, err)
+	plt.xlabel('step')
+	plt.ylabel('misclassification error')
+	plt.savefig('partF2.png')
+
+
+def partG():
+	# get data and fold indices
+	X, y, _, _ = get_all_data()
+	n, p = X.shape
+	steps = np.arange(p)
+	fold_idxs = u.generate_fold_idxs(n, num_folds)
+
+	# aggregate error at each fold
+	fold_errors = []
+
+	for fold_idx in fold_idxs:
+		# get train and test for this fold
+		X_train, y_train, X_test, y_test = u.get_fold_Xys(X, y, fold_idx)
+		n_fold = X_test.shape[0]
+		# predict using the trained model
+		fold_model = u.train_model(X_train, y_train)
+		y_test_hat = fold_model.predict_at_all_steps(X_test)
+		y_test_hat_binary = y_test_hat > 0.5
+
+		# produce error at each step
+		y_augmented = np.repeat(y_test, p, axis = 1)
+		err_arr = np.sum( np.abs(y_test_hat_binary - y_augmented), axis = 0) / float(n_fold)
+		fold_errors.append(err_arr)
+
+	# get the mean and std for all folds at each step
+	fold_errors_array = np.array(fold_errors)
+	error_mean = np.mean(fold_errors_array, axis = 0)
+	error_std = np.std(fold_errors_array, axis = 0) / np.sqrt(num_folds)
+
+	plt.figure('g')
+	plt.plot(steps, error_mean, label = 'mean')
+	plt.plot(steps, error_mean + error_std, color = 'C1', linestyle = '--', label = '1 std interval')
+	plt.plot(steps, error_mean - error_std, color = 'C1', linestyle = '--')
+	plt.xlabel('step')
+	plt.ylabel('misclassification error')
+	plt.legend()
+	plt.savefig('partG.png')	
 
 def main():
-	test_folds()
+	#test_folds()
+	partG()
 
 
 

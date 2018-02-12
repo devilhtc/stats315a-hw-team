@@ -3,6 +3,11 @@ import time
 
 VERBOSE_DEFAULT = True
 
+# train and return a model
+def train_model(X_train, y_train):
+    model = SFModel(X_train, y_train, verbose = False)
+    model.build()
+    return model
 
 # get X_train, y_train, X_test, y_test
 # all preprocessed
