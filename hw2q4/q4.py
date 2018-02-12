@@ -4,12 +4,14 @@ import util as u
 
 np.random.seed(315)
 
+# constants
 data_dir = 'data/'
 data_filename = 'spam.data.txt'
 indicator_filename = 'spam.traintest.txt'
 num_folds = 10
 
 ### tests begin
+
 def test_folds():
 	X, y, _, _ = get_all_data()
 	n, p = X.shape
@@ -134,7 +136,7 @@ def partG():
 	for fold_idx in fold_idxs:
 		# get train and test for this fold
 		X_train, y_train, X_test, y_test = u.get_fold_Xys(X, y, fold_idx)
-		n_fold = X_test.shape[0]
+		n_test = X_test.shape[0]
 		# predict using the trained model
 		fold_model = u.train_model(X_train, y_train)
 		y_test_hat = fold_model.predict_at_all_steps(X_test)
@@ -142,7 +144,7 @@ def partG():
 
 		# produce error at each step
 		y_augmented = np.repeat(y_test, p, axis = 1)
-		err_arr = np.sum( np.abs(y_test_hat_binary - y_augmented), axis = 0) / float(n_fold)
+		err_arr = np.mean( np.abs(y_test_hat_binary - y_augmented), axis = 0)
 		fold_errors.append(err_arr)
 
 	# get the mean and std for all folds at each step
@@ -159,9 +161,32 @@ def partG():
 	plt.legend()
 	plt.savefig('partG.png')	
 
+def partH():
+	# with 27 chosen 
+	chosen = 27
+	X_train, y_train, X_test, y_test = get_all_data()
+	n, p = X_train.shape
+	steps = np.arange(p)
+
+	fold_model = u.train_model(X_train, y_train)
+	y_test_hat = fold_model.predict_at_all_steps(X_test)
+	y_test_hat_binary = y_test_hat > 0.5
+
+	y_augmented = np.repeat(y_test, p, axis = 1)
+	err_arr = np.mean( np.abs(y_test_hat_binary - y_augmented), axis = 0)
+
+	plt.figure('h')
+	plt.plot(steps, err_arr, label = 'test error')
+	plt.scatter([chosen], [err_arr[chosen]], marker = 'o', color = 'C1', s = 100, label = 'chosen step')
+	plt.xlabel('step')
+	plt.ylabel('misclassification error')
+	plt.legend()
+	plt.savefig('partH.png')
+
+
 def main():
 	#test_folds()
-	partG()
+	partH()
 
 
 
