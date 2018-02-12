@@ -1,21 +1,128 @@
 import numpy as np
+import time
+
+# test import
+def test():
+    print 'Import success!'
+
+# remove the mean of each row of X
+def col_mean_centered(X):
+    return X - np.mean(X, axis = 0, keepdims = True)
+
+# produce the ls fit of x on y
+def linear_reg(X, y):
+    return np.linalg.inv(np.dot(X.T, X)).dot(X.T).dot(y)
+
+# orthogonalize x on z (remove the component of x on vector z)
+def orthogonalize(x, z):
+    return x - x.T.dot(z) / z.T.dot(z) * z
+
+# step-forward model
+class SFModel(object):
+    # initialization, only X and y is required
+    def __init__(self, X, y):
+        n, p = X.shape
+        self.n = n
+        self.p = p
+        self.X = X
+        self.y = y
+        self.setup()
+
+    # setup stepping and outputs
+    def setup(self):
+        # the current step taken 
+        self.step = 0
+
+        # indices (ranging from 0 to p-1) of the dimensions added 
+        # (in the order of being added) 
+        # and basis
+        self.selected_indices = []
+        self.zs = [ np.ones(self.n) ]
+
+        # current X_res, y_res (now a 1d vector)
+        self.X_res = col_mean_centered( self.X.copy() )
+        self.y_res = col_mean_centered( self.y.copy() ) 
+        self.y_res = self.y_res.reshape((self.n, ))
+
+        # the coefficients (a list of array with shape (i+1, 1) for the i_th element)
+        # the first dimension of each coefficient is the intercept
+        self.coefficients = []
+        self.intercepts = []
+
+        self.coefficient_matrix = None
+
+    # take the model 1 step forward 
+    # return False if already step to the end
+    # else return True 
+    def one_step_forward(self):
+        if self.step >= self.p:
+            return False
+
+        unselected_indices = [i for i in range(self.p) if i not in self.selected_indices]
+        residues = [] # residues for each index
+
+        for i in unselected_indices:
+            # get the ith unselected vector of shape (n,)
+            cur_x = self.X_res[:, i].copy()
+
+            # regress self.y_res on cur_x, get the residue after this dimension
+            cur_y_res = orthogonalize(self.y_res, cur_x)
+            cur_res = np.linalg.norm(cur_y_res)
+            residues.append((cur_res, i))
+
+        # select the index that gives 
+        selected_index = min(residues)[1]
+        selected_column = self.X_res[:, selected_index].copy()
+        self.zs.append(selected_column)
+        self.selected_indices.append(selected_index)
+
+        # remove the component of selected column on self.y_res
+        self.y_res = orthogonalize(self.y_res, selected_column)
+        self.X_res[:, selected_index] = 0.0 * selected_column # zero out
+
+        # orthogonalize rest of self.X_res on the selected column
+        for i in unselected_indices:
+            if i != selected_index:
+                self.X_res[:, i] = orthogonalize(self.X_res[:, i], selected_column)
+
+        self.step += 1
+        return True
+
+    def build(self):
+        start = time.time()
+        self.step_forward()
+        end = time.time()
+        print 'Build success!'
+        print 'It takes {:0.4f} seconds'.format(end - start)
+
+    # take steps forward to the end
+    def step_forward(self):
+        while self.one_step_forward():
+            print 'Step', self.step, 'complete'
+            self.regress_on_current_subset()
+
+    def regress_on_current_subset(self):
+        pass
+
+    # make a prediction on X0 (m,p) at all steps
+    # return a matrix of shape (m,p) 
+    # where the ij th element is the ith input predicted at the jth step
+    def predict_at_all_steps(self, X0):
+        pass
+
+    def get_coefficient_matrix(self):
+        pass
 
 
-def col_mean_centered(x):
-    return x - np.mean(x, axis=0, keepdims=True)
 
-def linear_reg(x, y):
-    return np.linalg.inv(np.dot(x.T, x)).dot(x.T).dot(y)
+'''
+ARCHIVED
 
-def var_rs(x, y, index):
-    var = x[:, index]
+# get the residue of y from var
+def var_rs(var, y):
     beta = linear_reg(var, y)
     res = y - var.dot(beta)
     return res
-
-# orthogonalize a on b
-def orthogonalize(x, z):
-    return x - x.T.dot(z) / z.T.dot(z) * z
 
 def step_forward(x, y):
     (n, p) = x.shape
@@ -46,3 +153,4 @@ def step_forward(x, y):
             orthogonalize(x[:, index], min_var_index)
 
     return z_index, se_list
+'''
