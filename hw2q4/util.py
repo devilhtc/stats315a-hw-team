@@ -1,11 +1,55 @@
 import numpy as np
 import time
 
-VERBOSE = True
+VERBOSE_DEFAULT = True
 
-# test import
-def test():
-    print 'Import success!'
+#def get_fold_Xys(X, y, fold_idx):
+
+
+
+
+# generate indices of f folds of n
+def generate_fold_idx(n, f):
+    shuffled_idx = np.random.shuffle(np.arange(n))
+    out = [[] for _ in range(f)]
+    for i in range(n):
+        out[i%f].append(shuffled_idx[i])
+    return out
+
+# preprocess X as stated in the problem 
+# 1. mark the first 54 dimensions binary zero/nonzero
+# 2. use log on the last 3 features
+def preprocess(X):
+    X2 = X.copy()
+    X2[:, :54] = (X2[:, :54] != 0.0)
+    X2[:, -3:] = np.log(X2[:, -3:])
+    return X2
+
+# get train and test indices based on arr (n, 1)
+# with 1 indicating it's test and 0 being train
+def get_train_test_idx(train_test_indicator):
+    n = len(train_test_indicator)
+    train_idx = []
+    test_idx = []
+    for i in range(n):
+        if train_test_indicator[i, 0] > 0:
+            test_idx.append(i)
+        else:
+            train_idx.append(i)
+    return np.array(train_idx), np.array(test_idx)
+ 
+# convert a line (a string of space separated numbers)
+# to a list of floats
+def line2list(line):
+    return [float(x) for x in line.strip().split()]
+
+# read in a txt file as an np array
+def readin(filename):
+    f = open(filename, 'r')
+    lines = f.readlines()
+    array_list = [line2list(line) for line in lines if len(line.strip()) > 0]
+    f.close()
+    return np.array(array_list)
 
 # remove the mean of each row of X
 def col_mean_centered(X):
@@ -19,6 +63,7 @@ def linear_reg(X, y):
 def orthogonalize(x, z):
     return x - x.T.dot(z) / z.T.dot(z) * z
 
+# add a column of 1 to the left of X
 def augment(X):
     a, b = X.shape
     return np.concatenate( (np.ones( (a, 1) ), X), axis = 1 )
@@ -26,12 +71,13 @@ def augment(X):
 # step-forward model
 class SFModel(object):
     # initialization, only X and y is required
-    def __init__(self, X, y):
+    def __init__(self, X, y, verbose = VERBOSE_DEFAULT):
         n, p = X.shape
         self.n = n
         self.p = p
         self.X = X
         self.y = y
+        self.verbose = verbose
         self.setup()
 
     # setup stepping and outputs
@@ -39,10 +85,10 @@ class SFModel(object):
         # the current step taken 
         self.step = 0
 
-        # indices (ranging from 0 to p-1) of the dimensions added 
+        # idx (ranging from 0 to p-1) of the dimensions added 
         # (in the order of being added) 
         # and basis
-        self.selected_indices = []
+        self.selected_idx = []
         self.zs = [ np.ones(self.n) ]
 
         # current X_res, y_res (now a 1d vector)
@@ -58,15 +104,13 @@ class SFModel(object):
     # return False if already step to the end
     # else return True 
     def one_step_forward(self):
-        if VERBOSE: print
-
         if self.step >= self.p:
             return False
 
-        unselected_indices = [i for i in range(self.p) if i not in self.selected_indices]
+        unselected_idx = [i for i in range(self.p) if i not in self.selected_idx]
         residues = [] # residues for each index
 
-        for i in unselected_indices:
+        for i in unselected_idx:
             # get the ith unselected vector of shape (n,)
             cur_x = self.X_res[:, i].copy()
 
@@ -75,62 +119,60 @@ class SFModel(object):
             cur_res = np.power( np.linalg.norm(cur_y_res), 2 )
             residues.append((cur_res, i))
 
-
-        # select the index that gives 
-        selected_index = min(residues)[1]
-        selected_column = self.X_res[:, selected_index].copy()
-
+        # select the index that gives lowest residue
+        selected_i = min(residues)[1]
+        selected_column = self.X_res[:, selected_i].copy()
 
         # remove the component of selected column on self.y_res
         self.y_res = orthogonalize(self.y_res, selected_column)
-        self.X_res[:, selected_index] = 0.0 * selected_column # zero out
+        self.X_res[:, selected_i] = 0.0 * selected_column # zero out
 
 
-        if VERBOSE:
-            print 'At the current step, the residues and indices are'
+        if self.verbose:
+            print 'At the current step, the residues and idx are'
             print residues
-            print 'We then select index =', selected_index
+            print 'We then select index =', selected_i
             print 'Residue of y left is now {:0.5f}'.format( np.power(np.linalg.norm(self.y_res), 2) )
 
         self.zs.append(selected_column)
-        self.selected_indices.append(selected_index)
+        self.selected_idx.append(selected_i)
 
         # orthogonalize rest of self.X_res on the selected column
-        for i in unselected_indices:
-            if i != selected_index:
+        for i in unselected_idx:
+            if i != selected_i:
                 self.X_res[:, i] = orthogonalize(self.X_res[:, i], selected_column)
 
         self.step += 1
         return True
 
     def build(self):
-        if VERBOSE: print 'Build start!'
+        if self.verbose: print 'Build start!'
         start = time.time()
         self.step_forward()
         end = time.time()
-        if VERBOSE: print 'Build success!'
-        if VERBOSE: print 'It takes {:0.5f} seconds'.format(end - start)
+        if self.verbose: print 'Build success!'
+        if self.verbose: print 'It takes {:0.5f} seconds'.format(end - start)
 
     # take steps forward to the end
     def step_forward(self):
         while self.one_step_forward():
-            if VERBOSE: print 'Step', self.step, 'complete'
+            if self.verbose: print 'Step', self.step, 'complete\n'
             self.regress_on_current_subset()
 
     # perform linear regression on the current selected index
     # add coefficient to self.coefficients
     def regress_on_current_subset(self):
-        indices_array = np.array(self.selected_indices)
+        idx_array = np.array(self.selected_idx)
 
         # get inputs for linear regression of current subset
-        cur_X = self.X[:, indices_array]
+        cur_X = self.X[:, idx_array]
         cur_X_augmented = augment(cur_X)
 
         cur_beta = linear_reg(cur_X_augmented, self.y)
         
         # put the beta back to coefficients
         beta_to_add = np.zeros(self.p + 1) 
-        beta_to_add[indices_array + 1] += cur_beta[1:, 0]
+        beta_to_add[idx_array + 1] += cur_beta[1:, 0]
         beta_to_add[0] = cur_beta[0, 0]
 
         self.coefficients.append(beta_to_add)
@@ -156,6 +198,15 @@ class SFModel(object):
         betas = np.stack(self.coefficients)
         return betas.T
 
+
+
+'''
+below are not submitted
+'''
+
+# test import
+def test():
+    print 'Import success!'
 
 '''
 ARCHIVED
