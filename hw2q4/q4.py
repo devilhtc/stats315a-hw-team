@@ -98,7 +98,7 @@ def get_all_data():
 def partF():
 	X, y, _, _ = get_all_data()
 	n, p = X.shape
-	steps = np.arange(p)
+	steps = np.arange(p) + 1
 
 	# train and test model
 	model = u.train_model(X, y)
@@ -127,7 +127,7 @@ def partG():
 	# get data and fold indices
 	X, y, _, _ = get_all_data()
 	n, p = X.shape
-	steps = np.arange(p)
+	steps = np.arange(p) + 1
 	fold_idxs = u.generate_fold_idxs(n, num_folds)
 
 	# aggregate error at each fold
@@ -162,14 +162,14 @@ def partG():
 	plt.savefig('partG.png')	
 
 def partH():
-	# with 27 chosen 
-	chosen = 27
+	# with 28 chosen 
+	chosen = 28
 	X_train, y_train, X_test, y_test = get_all_data()
 	n, p = X_train.shape
-	steps = np.arange(p)
+	steps = np.arange(p) + 1
 
-	fold_model = u.train_model(X_train, y_train)
-	y_test_hat = fold_model.predict_at_all_steps(X_test)
+	model = u.train_model(X_train, y_train)
+	y_test_hat = model.predict_at_all_steps(X_test)
 	y_test_hat_binary = y_test_hat > 0.5
 
 	y_augmented = np.repeat(y_test, p, axis = 1)
@@ -177,16 +177,46 @@ def partH():
 
 	plt.figure('h')
 	plt.plot(steps, err_arr, label = 'test error')
-	plt.scatter([chosen], [err_arr[chosen]], marker = 'o', color = 'C1', s = 100, label = 'chosen step')
+	plt.scatter([chosen - 1], [err_arr[chosen - 1]], marker = 'o', color = 'C1', s = 100, label = 'chosen step')
 	plt.xlabel('step')
 	plt.ylabel('misclassification error')
 	plt.legend()
 	plt.savefig('partH.png')
 
+def partI():
+	X_train, y_train, X_test, y_test = get_all_data()
+	n, p = X_train.shape
+	steps = np.arange(p) + 1
+
+	model = u.train_model(X_train, y_train)
+	
+	# get coefficients
+	cm = model.get_coefficient_matrix()
+	selected_idx = model.selected_idx
+
+	print cm.shape
+
+	intercepts = np.array([np.mean(y_test)] + cm[0, :].tolist())
+	intercepts_steps = np.arange(p + 1)
+
+	# plot the coefficients path
+	plt.figure('i1')
+	plt.xlabel('step')
+	plt.ylabel('coefficient')
+	plt.plot(intercepts_steps, intercepts, label = 'intercept')
+	for i in range(p):
+		idx = selected_idx[i]
+		if i < 10:
+			plt.plot(steps, cm[idx+1, :], label = str(idx))
+		else:
+			plt.plot(steps, cm[idx+1, :])
+	plt.legend()
+	plt.savefig('partI1.png')
+
 
 def main():
 	#test_folds()
-	partH()
+	partI()
 
 
 
