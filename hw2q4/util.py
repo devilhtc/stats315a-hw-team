@@ -1,6 +1,8 @@
 import numpy as np
 import time
 
+VERBOSE = True
+
 # test import
 def test():
     print 'Import success!'
@@ -16,6 +18,10 @@ def linear_reg(X, y):
 # orthogonalize x on z (remove the component of x on vector z)
 def orthogonalize(x, z):
     return x - x.T.dot(z) / z.T.dot(z) * z
+
+def augment(X):
+    a, b = X.shape
+    return np.concatenate( (np.ones( (a, 1) ), X), axis = 1 )
 
 # step-forward model
 class SFModel(object):
@@ -52,7 +58,7 @@ class SFModel(object):
     # return False if already step to the end
     # else return True 
     def one_step_forward(self):
-        print
+        if VERBOSE: print
 
         if self.step >= self.p:
             return False
@@ -66,19 +72,28 @@ class SFModel(object):
 
             # regress self.y_res on cur_x, get the residue after this dimension
             cur_y_res = orthogonalize(self.y_res, cur_x)
-            cur_res = np.linalg.norm(cur_y_res)
+            cur_res = np.power( np.linalg.norm(cur_y_res), 2 )
             residues.append((cur_res, i))
-        print 'At the current step, the residues and indices are'
-        print residues
+
+
         # select the index that gives 
         selected_index = min(residues)[1]
         selected_column = self.X_res[:, selected_index].copy()
-        self.zs.append(selected_column)
-        self.selected_indices.append(selected_index)
+
 
         # remove the component of selected column on self.y_res
         self.y_res = orthogonalize(self.y_res, selected_column)
         self.X_res[:, selected_index] = 0.0 * selected_column # zero out
+
+
+        if VERBOSE:
+            print 'At the current step, the residues and indices are'
+            print residues
+            print 'We then select index =', selected_index
+            print 'Residue of y left is now {:0.5f}'.format( np.power(np.linalg.norm(self.y_res), 2) )
+
+        self.zs.append(selected_column)
+        self.selected_indices.append(selected_index)
 
         # orthogonalize rest of self.X_res on the selected column
         for i in unselected_indices:
@@ -89,33 +104,46 @@ class SFModel(object):
         return True
 
     def build(self):
-        print 'Build start!'
+        if VERBOSE: print 'Build start!'
         start = time.time()
         self.step_forward()
         end = time.time()
-        print 'Build success!'
-        print 'It takes {:0.5f} seconds'.format(end - start)
+        if VERBOSE: print 'Build success!'
+        if VERBOSE: print 'It takes {:0.5f} seconds'.format(end - start)
 
     # take steps forward to the end
     def step_forward(self):
         while self.one_step_forward():
-            print 'Step', self.step, 'complete'
+            if VERBOSE: print 'Step', self.step, 'complete'
             self.regress_on_current_subset()
 
     # perform linear regression on the current selected index
     # add coefficient to self.coefficients
     def regress_on_current_subset(self):
-        pass
+        indices_array = np.array(self.selected_indices)
+
+        # get inputs for linear regression of current subset
+        cur_X = self.X[:, indices_array]
+        cur_X_augmented = augment(cur_X)
+
+        cur_beta = linear_reg(cur_X_augmented, self.y)
+        
+        # put the beta back to coefficients
+        beta_to_add = np.zeros(self.p + 1) 
+        beta_to_add[indices_array + 1] += cur_beta[1:, 0]
+        beta_to_add[0] = cur_beta[0, 0]
+
+        self.coefficients.append(beta_to_add)
 
     # make a prediction on X0 (m, p) at all steps
     # return a matrix of shape (m, p) 
     # where the ij_th element is the i_th input predicted at the j_th step
     def predict_at_all_steps(self, X0):
         m, p = X0.shape
-        assert p==self.p, 'dimensionality mismatch, this models is trained for p = {0} but the input dimension is {1}!'.format(self.p, p)
+        assert p == self.p, 'dimensionality mismatch, this models is trained for p = {0} but the input dimension is {1}!'.format(self.p, p)
 
         # augment X0 and get coefficient matrix
-        X0_augmented = np.concatenate( (np.ones(m,1), X0), axis = 1 )
+        X0_augmented = augment(X0)
         cm = self.get_coefficient_matrix()
 
         # X0_augmented (m, p+1), cm (p+1, p), y0_hat (m, p)

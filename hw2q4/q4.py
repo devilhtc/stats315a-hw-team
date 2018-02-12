@@ -15,11 +15,14 @@ def test_model_1():
 def test_model_2():
 	n = 10
 	p = 3
-	X = np.random.randn(n, p)
-	y = np.random.randn(n, 1)
+	X = np.random.randn(n, p) * 2
+	beta = np.random.randn(p, 1) * 3
+	y = X.dot(beta) + np.random.randn(n, 1)
 	model = u.SFModel(X, y)
 	model.build()
-	print model.selected_indices
+	print 'indices (in the order it is selected) are', model.selected_indices
+	print 'coefficients at each step is', model.coefficients
+	print 'linear regression beta is', u.linear_reg(u.augment(X),y)
 
 def test_import():
 	u.test()
