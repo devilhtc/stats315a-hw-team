@@ -4,10 +4,8 @@ import numpy as np
 def col_mean_centered(x):
     return x - np.mean(x, axis=0, keepdims=True)
 
-
 def linear_reg(x, y):
     return np.linalg.inv(np.dot(x.T, x)).dot(x.T).dot(y)
-
 
 def var_rs(x, y, index):
     var = x[:, index]
@@ -18,7 +16,6 @@ def var_rs(x, y, index):
 # orthogonalize a on b
 def orthogonalize(x, z):
     return x - x.T.dot(z) / z.T.dot(z) * z
-
 
 def step_forward(x, y):
     (n, p) = x.shape
