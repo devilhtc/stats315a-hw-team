@@ -47,14 +47,13 @@ class SFModel(object):
         # the coefficients (a list of array with shape (i+1, 1) for the i_th element)
         # the first dimension of each coefficient is the intercept
         self.coefficients = []
-        self.intercepts = []
-
-        self.coefficient_matrix = None
 
     # take the model 1 step forward 
     # return False if already step to the end
     # else return True 
     def one_step_forward(self):
+        print
+
         if self.step >= self.p:
             return False
 
@@ -69,7 +68,8 @@ class SFModel(object):
             cur_y_res = orthogonalize(self.y_res, cur_x)
             cur_res = np.linalg.norm(cur_y_res)
             residues.append((cur_res, i))
-
+        print 'At the current step, the residues and indices are'
+        print residues
         # select the index that gives 
         selected_index = min(residues)[1]
         selected_column = self.X_res[:, selected_index].copy()
@@ -89,11 +89,12 @@ class SFModel(object):
         return True
 
     def build(self):
+        print 'Build start!'
         start = time.time()
         self.step_forward()
         end = time.time()
         print 'Build success!'
-        print 'It takes {:0.4f} seconds'.format(end - start)
+        print 'It takes {:0.5f} seconds'.format(end - start)
 
     # take steps forward to the end
     def step_forward(self):
@@ -101,15 +102,18 @@ class SFModel(object):
             print 'Step', self.step, 'complete'
             self.regress_on_current_subset()
 
+    # perform linear regression on the current selected index
     def regress_on_current_subset(self):
         pass
 
-    # make a prediction on X0 (m,p) at all steps
-    # return a matrix of shape (m,p) 
-    # where the ij th element is the ith input predicted at the jth step
+    # make a prediction on X0 (m, p) at all steps
+    # return a matrix of shape (m, p) 
+    # where the ij_th element is the i_th input predicted at the j_th step
     def predict_at_all_steps(self, X0):
         pass
 
+    # get coefficient matrix of shape (p+1, p)
+    # where the i_th column is the the coefficient at the i_th step
     def get_coefficient_matrix(self):
         pass
 
