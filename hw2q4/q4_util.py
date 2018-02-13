@@ -254,11 +254,3 @@ class SFModel(object):
         y0_hat = X0_augmented.dot(cm)
         return y0_hat
 
-
-'''
-below are not submitted
-'''
-
-# test import
-def test():
-    print 'Import success!'

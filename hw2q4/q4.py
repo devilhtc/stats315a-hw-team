@@ -75,9 +75,6 @@ def test_model_2():
 	print 'coefficients at each step is', model.coefficients
 	print 'linear regression beta is', u.linear_reg(u.augment(X),y)
 
-def test_import():
-	u.test()
-
 ### tests end
 
 ### helper functions start
@@ -96,9 +93,7 @@ def get_all_data():
 '''                      '''
 
 def partF():
-
 	print 'part F'
-
 	print 'getting data...'
 	X, y, _, _ = get_all_data()
 	n, p = X.shape
@@ -131,7 +126,6 @@ def partF():
 
 	print 'saved'
 	print 
-
 
 def partG():
 	print 'part G'
