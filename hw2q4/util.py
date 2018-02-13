@@ -3,6 +3,11 @@ import time
 
 VERBOSE_DEFAULT = True
 
+# arr is 1d array (s, ), prepend val at the start 
+# and return an array of size (s+1, )
+def prepend(arr, val):
+    return np.array([val] + arr.tolist())
+
 # train and return a model
 def train_model(X_train, y_train):
     model = SFModel(X_train, y_train, verbose = False)

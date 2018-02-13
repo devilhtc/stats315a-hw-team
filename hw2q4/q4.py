@@ -194,12 +194,10 @@ def partI():
 	cm = model.get_coefficient_matrix()
 	selected_idx = model.selected_idx
 
-	print cm.shape
-
-	intercepts = np.array([np.mean(y_test)] + cm[0, :].tolist())
+	intercepts = u.prepend(cm[0, :], np.mean(y_test))
 	intercepts_steps = np.arange(p + 1)
 
-	# plot the coefficients path
+	# plot the coefficients path vs step
 	plt.figure('i1')
 	plt.xlabel('step')
 	plt.ylabel('coefficient')
@@ -207,11 +205,33 @@ def partI():
 	for i in range(p):
 		idx = selected_idx[i]
 		if i < 10:
-			plt.plot(steps, cm[idx+1, :], label = str(idx))
+			plt.plot(intercepts_steps, u.prepend(cm[idx+1, :], 0.0), label = str(idx + 1))
 		else:
-			plt.plot(steps, cm[idx+1, :])
+			plt.plot(intercepts_steps, u.prepend(cm[idx+1, :], 0.0))
 	plt.legend()
 	plt.savefig('partI1.png')
+
+	# calculate R squared
+	y_train_hat = model.predict_at_all_steps(X_train)
+	y_train_augmented = np.repeat(y_train, p, axis = 1)
+	ss_res = np.sum(np.power(y_train_hat - y_train_augmented, 2), axis = 0)
+	ss_tot = np.sum( np.power(y_train - np.mean(y_train), 2) )
+	R_squared = 1.0 - ss_res / ss_tot
+	R_squared_with_null = u.prepend(R_squared, 0.0)
+
+	# plot the coefficients path vs R squared
+	plt.figure('i2')
+	plt.xlabel('R^2')
+	plt.ylabel('coefficient')
+	plt.plot(R_squared_with_null, intercepts, label = 'intercept')
+	for i in range(p):
+		idx = selected_idx[i]
+		if i < 10:
+			plt.plot(R_squared_with_null, u.prepend(cm[idx+1, :], 0.0), label = str(idx + 1))
+		else:
+			plt.plot(R_squared_with_null, u.prepend(cm[idx+1, :], 0.0))
+	plt.legend()
+	plt.savefig('partI2.png')	
 
 
 def main():
