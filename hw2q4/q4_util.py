@@ -125,7 +125,7 @@ class SFModel(object):
 
         # idx (ranging from 0 to p-1) of the dimensions added 
         # (in the order of being added) 
-        # and basis
+        # and basis (zs are the orthogonal vectors so far)
         self.selected_idx = []
         self.zs = [ np.ones(self.n) ]
 
