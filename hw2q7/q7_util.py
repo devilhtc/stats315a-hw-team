@@ -44,5 +44,22 @@ def ave_pool(data, kernel_size = 4):
 
 	return output.reshape((n, -1))
 
+# data is of dimension n * p
+# p = l * l
+# filter it to p' = (l/kernel_size) * (l/kernel_size)
+def ave_pool2(data, kernel_size = 4):
+	k = kernel_size
+	n, p = data.shape
+	l = int(np.sqrt(p))
+	pp = l/k
+
+	data_reshaped = data.reshape((n, l, l))
+	output = np.zeros((n, l, l))
+	for t in range(n):
+		for i in range(pp):
+			for j in range(pp):
+				output[t, i * k : i * k + k, j * k : j * k + k] += np.mean(data_reshaped[t, i * k : i * k + k, j * k : j * k + k])
+
+	return output.reshape((n, -1))
 
 

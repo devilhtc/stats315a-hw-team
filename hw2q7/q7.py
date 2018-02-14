@@ -62,8 +62,8 @@ def get_all_data_c():
 def get_all_data_d():
 	X_train, y_train, X_test, y_test = get_all_data()
 
-	X_train_pooled = u.ave_pool(X_train)
-	X_test_pooled = u.ave_pool(X_test)
+	X_train_pooled = u.ave_pool2(X_train)
+	X_test_pooled = X_test
 	return X_train_pooled, y_train, X_test_pooled, y_test
 
 def get_all_data_e():
