@@ -6,6 +6,7 @@ from glmnet import glmnet
 from glmnetPredict import glmnetPredict
 from glmnetPlot import glmnetPlot
 import matplotlib.pyplot as plt
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 import scipy
 
 # constants
@@ -113,6 +114,10 @@ def test_abcde_data():
 	print( 'test', X_test.shape, y_test.shape )
 	print(  )
 
+def pred_error(pred, y):
+	y = y.reshape(-1)
+	return np.mean(pred != y)
+
 def test_e():
 	X_train, y_train, X_test, y_test = get_all_data_e()
 	alpha_values = np.arange(0, 1.01, alpha_step)
@@ -121,15 +126,55 @@ def test_e():
 		lambdau = fit['lambdau']
 		devs = fit['dev']
 		fc = glmnetPredict(fit, X_test, ptype = 'class', s = lambdau).reshape(lambdau.shape[0], -1).T
-		errs = [np.sum(fc[:, i] != y_test[:, 0]) / y_test.shape[0] for i in range(fc.shape[-1])]
+		errs = [pred_error(fc[:, i], y_test) for i in range(fc.shape[-1])]
 		plt.plot(devs, errs, label="alpha=" + str(alpha))
 		plt.legend()
+	plt.xlabel("Deviance Ratio")
+	plt.ylabel("Prediction Error")
 	plt.show()
 
+def e_error():
+	print("e:")
+	X_train, y_train, X_test, y_test = get_all_data_e()
+	fit = glmnet(x = X_train.copy(), y = y_train.copy(), family = 'multinomial')
+	fc = glmnetPredict(fit, X_train, ptype='class', s=scipy.array([0.0])).T
+	train_err = pred_error(fc, y_train)
+	print("train error:" + str(train_err))
+
+	fc = glmnetPredict(fit, X_test, ptype = 'class', s = scipy.array([0.0])).T
+	test_err = pred_error(fc, y_test)
+	print("test error:" + str(test_err))
+
+def lda(X_train, y_train, X_test, y_test):
+	clf = LinearDiscriminantAnalysis()
+	clf.fit(X_train, y_train)
+	LinearDiscriminantAnalysis(n_components=None, priors=None, shrinkage=None,
+							   solver='svd', store_covariance=False, tol=0.0001)
+	train_pred = clf.predict(X_train)
+	train_error = pred_error(train_pred, y_train.reshape(-1))
+	print("train error:" + str(train_error))
+
+	pred = clf.predict(X_test)
+	test_error = pred_error(pred, y_test.reshape(-1))
+	print("test error:" + str(test_error))
+
+def lda_error():
+	print("a:")
+	X_train, y_train, X_test, y_test = get_all_data_a()
+	lda(X_train, y_train.reshape(-1), X_test, y_test.reshape(-1))
+	print("b:")
+	X_train, y_train, X_test, y_test = get_all_data_b()
+	lda(X_train, y_train.reshape(-1), X_test, y_test.reshape(-1))
+	print("c:")
+	X_train, y_train, X_test, y_test = get_all_data_c()
+	lda(X_train, y_train.reshape(-1), X_test, y_test.reshape(-1))
+	print("d:")
+	X_train, y_train, X_test, y_test = get_all_data_d()
+	lda(X_train, y_train.reshape(-1), X_test, y_test.reshape(-1))
 
 def main():
-	test_abcde_data()
-	#test_e()
+	lda_error()
+	e_error()
 
 if __name__=='__main__':
 	main()

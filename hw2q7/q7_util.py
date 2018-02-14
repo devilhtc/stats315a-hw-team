@@ -34,7 +34,7 @@ def ave_pool(data, kernel_size = 4):
 	k = kernel_size
 	n, p = data.shape
 	l = int(np.sqrt(p))
-	pp = l/k
+	pp = int(l/k)
 
 	data_reshaped = data.reshape((n, l, l))
 	output = np.zeros((n, pp, pp))
