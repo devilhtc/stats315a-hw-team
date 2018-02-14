@@ -129,8 +129,8 @@ def test_e():
 		errs = [pred_error(fc[:, i], y_test) for i in range(fc.shape[-1])]
 		plt.plot(devs, errs, label="alpha=" + str(alpha))
 		plt.legend()
-	plt.xlabel("Deviance Ratio")
-	plt.ylabel("Prediction Error")
+	plt.xlabel("\% deviance explained")
+	plt.ylabel("test error")
 	plt.show()
 
 def e_error():
@@ -139,11 +139,11 @@ def e_error():
 	fit = glmnet(x = X_train.copy(), y = y_train.copy(), family = 'multinomial')
 	fc = glmnetPredict(fit, X_train, ptype='class', s=scipy.array([0.0])).T
 	train_err = pred_error(fc, y_train)
-	print("train error:" + str(train_err))
+	print("train error: " + str(train_err))
 
 	fc = glmnetPredict(fit, X_test, ptype = 'class', s = scipy.array([0.0])).T
 	test_err = pred_error(fc, y_test)
-	print("test error:" + str(test_err))
+	print("test error: " + str(test_err))
 
 def lda(X_train, y_train, X_test, y_test):
 	clf = LinearDiscriminantAnalysis()
@@ -152,11 +152,11 @@ def lda(X_train, y_train, X_test, y_test):
 							   solver='svd', store_covariance=False, tol=0.0001)
 	train_pred = clf.predict(X_train)
 	train_error = pred_error(train_pred, y_train.reshape(-1))
-	print("train error:" + str(train_error))
+	print("train error: " + str(train_error))
 
 	pred = clf.predict(X_test)
 	test_error = pred_error(pred, y_test.reshape(-1))
-	print("test error:" + str(test_error))
+	print("test error: " + str(test_error))
 
 def lda_error():
 	print("a:")
