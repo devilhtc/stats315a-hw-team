@@ -156,7 +156,7 @@ def partG():
 		err_arr = np.mean( np.abs(y_test_hat_binary - y_augmented), axis = 0)
 		fold_errors.append(err_arr)
 
-		print 'fold {0} done'.format(i + 2)
+		print 'fold {0} done'.format(i + 1)
 
 	print 'analyzing data and making plots...'
 

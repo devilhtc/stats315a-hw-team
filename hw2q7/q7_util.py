@@ -1,5 +1,11 @@
 import numpy as np
 
+# get top k principal components
+def get_topk_pc(data, k):
+	U, D, V = np.linalg.svd(data)
+	V = V.T
+	return V[:,:k]
+
 # convert a line (a string of space separated numbers)
 # to a list of floats
 def line2list(line):
