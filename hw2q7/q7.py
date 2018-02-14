@@ -129,7 +129,7 @@ def test_e():
 		errs = [pred_error(fc[:, i], y_test) for i in range(fc.shape[-1])]
 		plt.plot(devs, errs, label="alpha=" + str(alpha))
 		plt.legend()
-	plt.xlabel("\% deviance explained")
+	plt.xlabel("% deviance explained")
 	plt.ylabel("test error")
 	plt.show()
 
