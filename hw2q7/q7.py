@@ -42,11 +42,16 @@ def get_all_data_b():
 
 def get_all_data_c():
 	# get training data (for svd)
-	data = u.readin(train_filename)
-	data_arr = u.filter_data(data, keep_digits)
-
+	data_all = u.readin(train_filename)
+	data_kept = u.filter_data(data_all, keep_digits)
+	data_train_mean = np.mean(data_kept[:, 1:], axis = 0)
+	data_kept[:, 1:] -= data_train_mean
+	data_arr = data_kept
 	# get all data
+
 	X_train, y_train, X_test, y_test = get_all_data()
+	X_train -= data_train_mean
+	X_test -= data_train_mean
 
 	k = 10
 	pcs = []
@@ -69,7 +74,7 @@ def get_all_data_d():
 	X_train, y_train, X_test, y_test = get_all_data()
 
 	X_train_pooled = u.ave_pool(X_train)
-	X_test_pooled = X_test
+	X_test_pooled = u.ave_pool(X_test)
 	return X_train_pooled, y_train, X_test_pooled, y_test
 
 def get_all_data_e():
@@ -123,7 +128,8 @@ def test_e():
 
 
 def main():
-	test_e()
+	test_abcde_data()
+	#test_e()
 
 if __name__=='__main__':
 	main()
