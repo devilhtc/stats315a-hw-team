@@ -73,7 +73,7 @@ def get_all_data_e():
 
 def test_abcde_data():
 	print( 'parta' )
-	X_train, y_train, X_test, y_test = get_all_data()
+	X_train, y_train, X_test, y_test = get_all_data_a()
 	print( 'train', X_train.shape, y_train.shape )
 	print( 'test', X_test.shape, y_test.shape )
 	print(  )
