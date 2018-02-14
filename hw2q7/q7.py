@@ -19,11 +19,17 @@ def get_all_data():
 	X_test, y_test = get_data(test_filename)
 	return X_train, y_train, X_test, y_test
 
+def examples():
+	X_train, y_train, X_test, y_test = get_all_data()
+	print 'train', X_train.shape, y_train.shape
+	print 'test', X_test.shape, y_test.shape
+
+	X_train_pooled = u.ave_pool(X_train)
+	print X_train_pooled.shape
+	print X_train_pooled[:5]
 
 def main():
-
-	get_train_data()
+	examples()
 
 if __name__=='__main__':
 	main()
-	
