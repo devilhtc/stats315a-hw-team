@@ -1,20 +1,26 @@
 from __future__ import print_function
 import numpy as np
 import q7_util as u
-
+import glmnet_python
+from glmnet import glmnet
+from glmnetPredict import glmnetPredict
+from glmnetPlot import glmnetPlot
+import matplotlib.pyplot as plt
+import scipy
 
 # constants
 test_filename = 'data/zip.test'
 train_filename = 'data/zip.train'
 keep_digits = [3.0, 5.0, 8.0]
+alpha_step = 0.1
 
 ### helper functions (e.g. for reading in data)
 
 def get_data(filename):
 	data = u.readin(filename)
 	data_arr = u.filter_data(data, keep_digits)
-	X = data_arr[:, 1:]
-	y = data_arr[:, :1]
+	X = np.array(data_arr[:, 1:], dtype="float64")
+	y = np.array(data_arr[:, :1], dtype="float64")
 	return X, y
 
 def get_all_data():
@@ -62,7 +68,7 @@ def get_all_data_c():
 def get_all_data_d():
 	X_train, y_train, X_test, y_test = get_all_data()
 
-	X_train_pooled = u.ave_pool2(X_train)
+	X_train_pooled = u.ave_pool(X_train)
 	X_test_pooled = X_test
 	return X_train_pooled, y_train, X_test_pooled, y_test
 
@@ -102,8 +108,22 @@ def test_abcde_data():
 	print( 'test', X_test.shape, y_test.shape )
 	print(  )
 
+def test_e():
+	X_train, y_train, X_test, y_test = get_all_data_e()
+	alpha_values = np.arange(0, 1.01, alpha_step)
+	for alpha in alpha_values:
+		fit = glmnet(x = X_train.copy(), y = y_train.copy(), family = 'multinomial', alpha = alpha)
+		lambdau = fit['lambdau']
+		devs = fit['dev']
+		fc = glmnetPredict(fit, X_test, ptype = 'class', s = lambdau).reshape(lambdau.shape[0], -1).T
+		errs = [np.sum(fc[:, i] != y_test[:, 0]) / y_test.shape[0] for i in range(fc.shape[-1])]
+		plt.plot(devs, errs, label="alpha=" + str(alpha))
+		plt.legend()
+	plt.show()
+
+
 def main():
-	test_abcde_data()
+	test_e()
 
 if __name__=='__main__':
 	main()

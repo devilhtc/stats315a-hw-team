@@ -19,6 +19,7 @@ def readin(filename):
     f.close()
     return np.array(array_list)
 
+
 def filter_data(data, keep):
 	filtered = []
 	for v in data:
@@ -56,8 +57,8 @@ def ave_pool2(data, kernel_size = 4):
 	data_reshaped = data.reshape((n, l, l))
 	output = np.zeros((n, l, l))
 	for t in range(n):
-		for i in range(pp):
-			for j in range(pp):
+		for i in range(int(pp)):
+			for j in range(int(pp)):
 				output[t, i * k : i * k + k, j * k : j * k + k] += np.mean(data_reshaped[t, i * k : i * k + k, j * k : j * k + k])
 
 	return output.reshape((n, -1))
