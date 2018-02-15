@@ -35,10 +35,15 @@ def get_all_data_a():
 def get_all_data_b():
 	X_train, y_train, X_test, y_test = get_all_data()
 	k = 30
-	X_train_mean = up.mean(X_train, axis = 0)
+	X_train_mean = np.mean(X_train, axis = 0)
+	# subtract mean
 	X_train -= X_train_mean
 	X_test -= X_train_mean
+
+	# get top k pc
 	topk_pc = u.get_topk_pc(X_train, k)
+
+	# map onto them
 	X_train_mapped = X_train.dot(topk_pc)
 	X_test_mapped = X_test.dot(topk_pc)
 
@@ -47,30 +52,41 @@ def get_all_data_b():
 def get_all_data_c():
 	# get training data (for svd)
 	data_all = u.readin(train_filename)
-	data_kept = u.filter_data(data_all, keep_digits)
-	data_train_mean = np.mean(data_kept[:, 1:], axis = 0)
-	data_kept[:, 1:] -= data_train_mean
-	data_arr = data_kept
-	# get all data
+	data_arr = u.filter_data(data_all, keep_digits)
 
+	# get all data
 	X_train, y_train, X_test, y_test = get_all_data()
-	X_train -= data_train_mean
-	X_test -= data_train_mean
 
 	k = 10
 	pcs = []
+	means = []
 
 	for d in keep_digits:
 		# get the data with current digit
 		cur_data = u.filter_data(data_arr, [d])
-
 		# get top k components
-		cur_topk_pc = u.get_topk_pc(cur_data[:, 1:], k)
-		pcs.append(cur_topk_pc)
+		cur_X = cur_data[:, 1:]
+		cur_mean = np.mean(cur_X, axis = 0)
 
-	all_pc = np.concatenate(pcs, axis = 1)
-	X_train_mapped = X_train.dot(all_pc)
-	X_test_mapped = X_test.dot(all_pc)
+		cur_topk_pc = u.get_topk_pc(cur_X - cur_mean, k)
+		pcs.append(cur_topk_pc)
+		means.append(cur_mean)
+
+	# map train and tests to the components
+	# of the three classes
+	# by subtracting the mean of that class then dot product
+	X_trains = []
+	X_tests = []
+	for i in range(len(keep_digits)):
+		cur_mean = means[i]
+		cur_topk_pc = pcs[i]
+		X_trains.append( (X_train - cur_mean).dot(cur_topk_pc))
+		X_tests.append( (X_test - cur_mean).dot(cur_topk_pc))
+
+	X_train_mapped = np.concatenate(X_trains, axis = 1)
+	X_test_mapped = np.concatenate(X_tests, axis = 1)
+
+	return X_train_mapped, y_train, X_test_mapped, y_test
 
 	return X_train_mapped, y_train, X_test_mapped, y_test
 
