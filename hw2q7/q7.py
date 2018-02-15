@@ -35,6 +35,9 @@ def get_all_data_a():
 def get_all_data_b():
 	X_train, y_train, X_test, y_test = get_all_data()
 	k = 30
+	X_train_mean = up.mean(X_train, axis = 0)
+	X_train -= X_train_mean
+	X_test -= X_train_mean
 	topk_pc = u.get_topk_pc(X_train, k)
 	X_train_mapped = X_train.dot(topk_pc)
 	X_test_mapped = X_test.dot(topk_pc)
