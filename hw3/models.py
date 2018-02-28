@@ -78,12 +78,13 @@ class LinearModel(BasicModel):
 			raise Exception('This model was not yet fitted')
 		return self.params
 
-# ridge regression model
+# ridge regression model 
+# alpha is the penalty on the weights (default 1.0)
 class RidgeModel(BasicModel):
 	def __init__(self, alpha = 1.0):
 		self.model = sklm.Ridge(alpha = alpha)
 		self.fitted = False
-		self.params = {'alpha': alpha}
+		self.params = { 'alpha': alpha }
 
 	def fit(self, X, Y):
 		self.model.fit(X, Y)
