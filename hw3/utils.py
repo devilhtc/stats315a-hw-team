@@ -6,6 +6,7 @@ import unittest
 # process a value by its name, returns a list of values
 # e.g. name: age, 18 -> [18],  or name: reason, 'travel': [0, 1, 0, 0, 0, 0]
 def process_val_by_name(val, name):
+	# the range of each non-float names
 	non_float_range_dict = {
 		'employment': ['NA', '< 1', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'],
 		'status': ['unchecked', 'partial', 'checked'],
