@@ -3,9 +3,11 @@ import numpy as np
 import unittest
 
 
+# split a line by ',' then strip out the '"'s
 def split_line(line):
 	return [ele.strip('"') for ele in line.split(',')]
 
+# test if a string is a float
 def isfloat(value):
 	try:
 		float(value)
@@ -13,6 +15,7 @@ def isfloat(value):
 	except ValueError:
 		return False
 
+# get stripped lines from a file
 def get_lines(filename):
 	f = open(filename, 'r')
 	lines = []
@@ -21,6 +24,7 @@ def get_lines(filename):
 	f.close()
 	return lines
 
+# return 'float' if all the strings can be convereted to float, otherwise return 'string'
 def get_types(set_of_values):
 	return 'float' if all(isfloat(val) for val in set_of_values) else 'string'
 
@@ -43,7 +47,6 @@ def summarize_range(lines):
 			values[i] = set(['min:{0:.2f}'.format(min(values[i])), 'max:{0:.2f}'.format(max(values[i]))])
 	return values, value_types
 
-	
 class UtilTests(unittest.TestCase):
 	def setUp(self):
 		self.num = 0
