@@ -1,0 +1,6 @@
+('initial_list_status', set(['a', 'b']))
+('term', set([' 3 yrs', ' 5 yrs']))
+('employment', set(['10+', '< 1', 'NA', '1', '3', '2', '5', '4', '7', '6', '9', '8']))
+('status', set(['checked', 'partial', 'unchecked']))
+('reason', set(['business', 'cc', 'moving', 'solar', 'home', 'educ', 'renovation', 'boat', 'debt', 'medical', 'event', 'other', 'transport', 'holiday']))
+('quality', set(['q1', 'q3', 'q2', 'q5', 'q4', 'q7', 'q6']))
