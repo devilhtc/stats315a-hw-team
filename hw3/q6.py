@@ -1,6 +1,7 @@
 from __future__ import print_function
 import numpy as np
 import utils as u
+import models as m
 
 # constants
 data_dir = 'data/'

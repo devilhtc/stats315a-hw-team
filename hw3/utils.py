@@ -3,6 +3,15 @@ import numpy as np
 import unittest
 
 
+# add a column of 1 to the left of X
+def augment(X):
+    a, b = X.shape
+    return np.concatenate( (np.ones( (a, 1) ), X), axis = 1 )
+
+# produce the ls fit of x on y
+def linear_reg(X, y):
+    return np.linalg.inv(np.dot(X.T, X)).dot(X.T).dot(y)
+
 # process a value by its name, returns a list of values
 # e.g. name: age, 18 -> [18],  or name: reason, 'travel': [0, 1, 0, 0, 0, 0]
 def process_val_by_name(val, name):
