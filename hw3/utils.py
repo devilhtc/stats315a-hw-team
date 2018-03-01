@@ -2,6 +2,36 @@ from __future__ import print_function
 import numpy as np
 import unittest
 
+# using the index of the current test set, get the the train and test data for this fold
+def get_fold_XYs(X, Y, fold_idx):
+    n, p = X.shape
+    train_idx = np.array([i for i in range(n) if i not in fold_idx])
+    test_idx = np.array(fold_idx)
+    X_train, Y_train = X[train_idx], Y[train_idx]
+    X_test, Y_test = X[test_idx], Y[test_idx]
+    return (X_train, Y_train, X_test, Y_test)
+
+# generate the folds, takes inputs X, Y and f (number of folds)
+# return a list of tuples in the form of (X_train, Y_train, X_test, Y_test)
+def generate_folds(X, Y, f, seed = None):
+	if seed:
+		np.random.seed(seed)
+	n, _ = X.shape
+	fold_idxs = generate_fold_idxs(n, f)
+	out = []
+	for fold_idx in fold_idxs:
+		out.append(get_fold_XYs(X, Y, fold_idx))
+	return out 
+
+# generate indices of f folds of n
+# output a list of lists of indices
+def generate_fold_idxs(n, f):
+    shuffled_idx = np.arange(n)
+    np.random.shuffle(shuffled_idx)
+    out = [[] for _ in range(f)]
+    for i in range(n):
+        out[i%f].append(shuffled_idx[i])
+    return out
 
 # add a column of 1 to the left of X
 def augment(X):

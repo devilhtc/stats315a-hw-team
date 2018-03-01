@@ -18,7 +18,6 @@ each model
 	e.g. {'beta': np.array([[-1.0, 2.0, 3.0]])}
 '''
 
-
 # basic model for the other models to implement
 class BasicModel(object):
 	def __init__(self):
@@ -79,7 +78,7 @@ class LinearModel(BasicModel):
 		return self.params
 
 # ridge regression model 
-# alpha is the penalty on the weights (default 1.0)
+# alpha is the penalty on the l2 norm^2 of weights (default 1.0)
 class RidgeModel(BasicModel):
 	def __init__(self, alpha = 1.0):
 		self.model = sklm.Ridge(alpha = alpha)
@@ -102,6 +101,54 @@ class RidgeModel(BasicModel):
 			raise Exception('This model was not yet fitted')
 		return self.params
 
+# lasso model 
+# alpha is the penalty on the l1 norm weights (default 1.0)
+class LassoModel(BasicModel):
+	def __init__(self, alpha = 1.0):
+		self.model = sklm.Lasso(alpha = alpha)
+		self.fitted = False
+		self.params = { 'alpha': alpha }
+
+	def fit(self, X, Y):
+		self.model.fit(X, Y)
+		self.fitted = True
+		beta = np.concatenate([self.model.intercept_, self.model.coef_.flatten()], axis = 0).reshape((-1, 1))
+		self.params['beta'] = beta
+		
+	def predict(self, X):
+		if not self.fitted:
+			raise Exception('This model was not yet fitted')
+		return self.model.predict(X)
+
+	def get_params(self):
+		if not self.fitted:
+			raise Exception('This model was not yet fitted')
+		return self.params
+
+# elastic net model 
+# alpha is total penalty
+# lam is the proportion on l1 norm
+class ElasticNetModel(BasicModel):
+	def __init__(self, alpha = 1.0, lam = 0.5):
+		self.model = sklm.ElasticNet(alpha = alpha, l1_ratio = lam)
+		self.fitted = False
+		self.params = { 'alpha': alpha }
+
+	def fit(self, X, Y):
+		self.model.fit(X, Y)
+		self.fitted = True
+		beta = np.concatenate([self.model.intercept_, self.model.coef_.flatten()], axis = 0).reshape((-1, 1))
+		self.params['beta'] = beta
+		
+	def predict(self, X):
+		if not self.fitted:
+			raise Exception('This model was not yet fitted')
+		return self.model.predict(X)
+
+	def get_params(self):
+		if not self.fitted:
+			raise Exception('This model was not yet fitted')
+		return self.params
 
 # test the models
 class TestModels(unittest.TestCase):
