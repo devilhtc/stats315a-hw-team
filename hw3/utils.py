@@ -21,7 +21,7 @@ def generate_folds(X, Y, f, seed = None):
 	out = []
 	for fold_idx in fold_idxs:
 		out.append(get_fold_XYs(X, Y, fold_idx))
-	return out 
+	return out
 
 # generate indices of f folds of n
 # output a list of lists of indices
@@ -94,7 +94,6 @@ def get_file_ranges(filename):
 	dim_ranges, dim_types = summarize_range(lines[1:])
 	train_ranges = zip(dim_names, dim_types, dim_ranges)
 	return train_ranges
-
 # split a line by ',' then strip out the '"'s
 def split_line(line):
 	return [ele.strip('"') for ele in line.split(',')]
@@ -107,7 +106,7 @@ def isfloat(value):
 	except ValueError:
 		return False
 
-# get stripped lines from a file 
+# get stripped lines from a file
 def get_lines(filename):
 	f = open(filename, 'r')
 	lines = []
