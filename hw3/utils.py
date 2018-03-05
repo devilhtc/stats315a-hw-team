@@ -94,17 +94,14 @@ def get_file_ranges(filename):
 	dim_ranges, dim_types = summarize_range(lines[1:])
 	train_ranges = zip(dim_names, dim_types, dim_ranges)
 	return train_ranges
+
 # split a line by ',' then strip out the '"'s
 def split_line(line):
 	return [ele.strip('"') for ele in line.split(',')]
 
 # test if a string is a float
 def isfloat(value):
-	try:
-		float(value)
-		return True
-	except ValueError:
-		return False
+	return isinstance(value, float)
 
 # get stripped lines from a file
 def get_lines(filename):
