@@ -138,13 +138,13 @@ def process_val_by_name(val, name, method = 1):
 
 # process the lines by its identifying names
 # return a list of list of floats for analysis
-def process_lines_by_name(lines, names):
+def process_lines_by_name(lines, names, method = 1):
 	processed_lines = []
 	for line in lines:
 		cur_line = []
 		splitted_line = split_line(line)
 		for i in range(len(names)):
-			cur_line = cur_line + process_val_by_name(splitted_line[i], names[i])
+			cur_line = cur_line + process_val_by_name(splitted_line[i], names[i], method = method)
 		processed_lines.append(cur_line)
 	return processed_lines
 

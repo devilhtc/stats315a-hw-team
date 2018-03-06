@@ -35,12 +35,13 @@ def get_non_float_ranges():
 # return X_train (n, p'), Y_train (n, 1), X_test (m, p')
 # X_train and X_test are processed in the same way
 def get_data():
+	method = 3
 	train_lines = u.get_lines(data_dir + train_filename)
 	names = u.split_line(train_lines[0])
-	train_all = u.process_lines_by_name(train_lines[1:], names)
+	train_all = u.process_lines_by_name(train_lines[1:], names, method = method)
 	
 	test_lines = u.get_lines(data_dir + test_filename)
-	test_all = u.process_lines_by_name(test_lines[1:], names[1:])
+	test_all = u.process_lines_by_name(test_lines[1:], names[1:], method = method)
 
 
 	train_XY = np.array(train_all)
