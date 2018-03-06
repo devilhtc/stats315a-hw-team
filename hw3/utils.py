@@ -42,9 +42,16 @@ def augment(X):
 def linear_reg(X, y):
     return np.linalg.inv(np.dot(X.T, X)).dot(X.T).dot(y)
 
+# convert a name to a one-hot vector with 1 at its place
+def one_hot(name, name_list):
+	return [(1.0 if ele == name else 0.0) for ele in name_list]
+
+def one_hot_range(name, range_list):
+	return [(1.0 if name in ele else 0.0) for ele in range_list]
+
 # process a value by its name, returns a list of values
 # e.g. name: age, 18 -> [18],  or name: reason, 'travel': [0, 1, 0, 0, 0, 0]
-def process_val_by_name(val, name):
+def process_val_by_name(val, name, method = 1):
 	# the range of each non-float names
 	non_float_range_dict = {
 		'employment': ['NA', '< 1', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'],
@@ -55,12 +62,12 @@ def process_val_by_name(val, name):
 		'term': [' 3 yrs', ' 5 yrs']
 	}
 
-	# convert a name to a one-hot vector with 1 at its place
-	def one_hot(name, name_list):
-		return [(1.0 if ele == name else 0.0) for ele in name_list]
+	# process_dict1/2/3 ... defines how we process the data
 
-	# defines how we process the data
-	process_dict = {
+	# binary on initial_list_status and term
+	# converts quality to float
+	# one-hot on the rest
+	process_dict1 = {
 		'initial_list_status': lambda x: [1.0] if x == 'a' else [0.0],
 		'term': lambda x: [1.0] if '5' in x else [0.0],
 		'quality': lambda x: [float(x[1:])],
@@ -69,9 +76,63 @@ def process_val_by_name(val, name):
 		'status': lambda x: one_hot(x, non_float_range_dict['status']),
 	}
 
+	employment_range_list = [['NA', '< 1', '1'], ['2', '3', '4'], ['5', '6', '7'], ['8', '9', '10+']]
+	quality_range_list = [['q1', 'q2', 'q3'], ['q4', 'q5'], ['q6', 'q7']]
+
+	# segment employment to four segments (changed from dict1)
+	process_dict2 = dict(process_dict1)
+	process_dict2['employment'] = lambda x: one_hot_range(x, employment_range_list)
+
+	# drops reason from dict1
+	process_dict3 = dict(process_dict1)
+	process_dict3['reason'] = lambda x: []
+
+	# segment quality to three segments (changed from dict1)
+	process_dict4 = dict(process_dict1)
+	process_dict4['quality'] = lambda x: one_hot_range(x, quality_range_list)
+
+	# segment employment to four segments (changed from dict1) 
+	# and dropped reason
+	process_dict5 = dict(process_dict1)
+	process_dict5['employment'] = lambda x: one_hot_range(x, employment_range_list)
+	process_dict5['reason'] = lambda x: []
+
+	# segment quality to three segments (changed from dict1)
+	# and dropped reason
+	process_dict6 = dict(process_dict1)
+	process_dict6['quality'] = lambda x: one_hot_range(x, quality_range_list)
+	process_dict6['reason'] = lambda x: []	
+
+	# segment quality to three segments (changed from dict1)
+	# segment employment to four segments (changed from dict1) 
+	process_dict7 = dict(process_dict1)
+	process_dict7['employment'] = lambda x: one_hot_range(x, employment_range_list)
+	process_dict7['quality'] = lambda x: one_hot_range(x, quality_range_list)
+
+	# segment quality to three segments (changed from dict1)
+	# segment employment to four segments (changed from dict1) 
+	# and dropped reason
+	process_dict8 = dict(process_dict1)
+	process_dict8['employment'] = lambda x: one_hot_range(x, employment_range_list)
+	process_dict8['quality'] = lambda x: one_hot_range(x, quality_range_list)
+	process_dict8['reason'] = lambda x: []	
+
+	process_dicts = {
+		1: process_dict1,
+		2: process_dict2,
+		3: process_dict3,
+		4: process_dict4,
+		5: process_dict5,
+		6: process_dict6,
+		7: process_dict7,
+		8: process_dict8
+	}
+
+	# default processing function, 
 	def default_process_func(x):
 		return [float(x)]
 
+	process_dict = process_dicts[method]
 	process_func = process_dict.get(name, default_process_func)
 	return process_func(val)
 
@@ -101,7 +162,11 @@ def split_line(line):
 
 # test if a string is a float
 def isfloat(value):
-	return isinstance(value, float)
+	try:
+		float(value)
+		return True
+	except ValueError:
+		return False
 
 # get stripped lines from a file
 def get_lines(filename):
@@ -158,6 +223,11 @@ class UtilTests(unittest.TestCase):
 
 	def test_process(self):
 		pass
+
+	def test_one_hot_range(self):
+		employment_range_list = [['NA', '< 1', '1'], ['2', '3', '4'], ['5', '6', '7'], ['8', '9', '10+']]
+		self.assertEqual(one_hot_range('1', employment_range_list), [1, 0, 0, 0], 'one_hot_range test 1 failed')
+		self.assertEqual(one_hot_range('9', employment_range_list), [0, 0, 0, 1], 'one_hot_range test 2 failed')
 
 def main():
 	unittest.main()
