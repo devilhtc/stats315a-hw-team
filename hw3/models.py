@@ -32,8 +32,8 @@ class BasicModel(object):
 	def get_params(self):
 		raise NotImplementedError('each model should implement it')
 
-# just for testing - sklearn linear model, sklearn models takes in the same dimension as our model
-class SKLinearModel(BasicModel):
+# sklearn linear model, sklearn models takes in the same dimension as our model
+class LinearModel(BasicModel):
 	def __init__(self):
 		self.model = sklm.LinearRegression()
 		self.fitted = False
@@ -56,7 +56,7 @@ class SKLinearModel(BasicModel):
 		return self.params
 
 # a linear model using (XTX)^(-1)XTY as beta
-class LinearModel(BasicModel):
+class BaseLinearModel(BasicModel):
 	def __init__(self):
 		self.fitted = False
 		self.beta = None
@@ -159,7 +159,7 @@ class TestModels(unittest.TestCase):
 		self.X_test = np.array([ [1.0, 1.0], [1.5, 1.0]])
 
 	def test_not_fitted(self):
-		lm = SKLinearModel()
+		lm = LinearModel()
 		try:
 			lm.predict(self.X_test)
 			self.assertEqual(0, 1, msg = 'SKLinearModel able to predict without fitting')
@@ -178,7 +178,7 @@ class TestModels(unittest.TestCase):
 		Y_train = self.Y_train
 		X_test = self.X_test
 
-		lm = SKLinearModel()
+		lm = LinearModel()
 		lm.fit(X_train, Y_train)
 
 		Y_test = lm.predict(X_test)
