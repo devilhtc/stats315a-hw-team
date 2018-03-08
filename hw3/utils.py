@@ -8,7 +8,7 @@ import os
 output_dir = 'outputs/'
 output_filename_base = 'loan_testy_'
 z = 1.645 # 90 percent interval z score
-divide = False
+divide = True
 
 # input is all the default rates as an np array
 # output file in outputs/ with time stamp
