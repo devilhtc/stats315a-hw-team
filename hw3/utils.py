@@ -10,7 +10,10 @@ output_filename_base = 'loan_testy_'
 z = 1.645 # 90 percent interval z score
 divide = False
 
+# input is all the default rates as an np array
+# output file in outputs/ with time stamp
 def output_to_file(default_rates):
+	default_rates = np.array(default_rates).flatten()
 	if not os.path.exists(output_dir):
 		os.makedirs(output_dir)
 	a, b = confidence_interval(default_rates)
@@ -21,6 +24,8 @@ def output_to_file(default_rates):
 	f.write('\n'.join(map(str, default_rates.tolist())))
 	f.close()
 
+# calculate the confidence interval of default rates
+# return a, b
 def confidence_interval(default_rates):
 	sigma = np.std(default_rates)
 	mu = np.mean(default_rates)
