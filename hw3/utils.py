@@ -1,6 +1,31 @@
 from __future__ import print_function
 import numpy as np
 import unittest
+import datetime
+import os
+
+# constants
+output_dir = 'outputs/'
+output_filename_base = 'loan_testy_'
+z = 1.645 # 90 percent interval z score
+divide = False
+
+def output_to_file(default_rates):
+	if not os.path.exists(output_dir):
+		os.makedirs(output_dir)
+	a, b = confidence_interval(default_rates)
+	out_filename = output_dir + output_filename_base + datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S") + '.csv'
+	print('output file {0}'.format(out_filename))
+	f = open(out_filename, 'w+')
+	f.write('{0}, {1}\n'.format(a, b))
+	f.write('\n'.join(map(str, default_rates.tolist())))
+	f.close()
+
+def confidence_interval(default_rates):
+	sigma = np.std(default_rates)
+	mu = np.mean(default_rates)
+	n = len(default_rates) if divide else 1
+	return mu - z * sigma / np.sqrt(n), mu + z * sigma / np.sqrt(n)
 
 # using the index of the current test set, get the the train and test data for this fold
 def get_fold_XYs(X, Y, fold_idx):
@@ -228,6 +253,10 @@ class UtilTests(unittest.TestCase):
 		employment_range_list = [['NA', '< 1', '1'], ['2', '3', '4'], ['5', '6', '7'], ['8', '9', '10+']]
 		self.assertEqual(one_hot_range('1', employment_range_list), [1, 0, 0, 0], 'one_hot_range test 1 failed')
 		self.assertEqual(one_hot_range('9', employment_range_list), [0, 0, 0, 1], 'one_hot_range test 2 failed')
+
+	def test_write(self):
+		rates = np.arange(0.0, 1.0, 0.01)
+		output_to_file(rates)
 
 def main():
 	unittest.main()
