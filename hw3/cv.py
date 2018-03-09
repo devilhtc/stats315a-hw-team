@@ -4,6 +4,7 @@ from sklearn import svm
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import StandardScaler
 
 def svm_cv(X, y, kernel, k):
     y = np.reshape(y, [-1])
@@ -30,10 +31,13 @@ def cv(X, y, model, kf):
         scores.append(accuracy)
     return np.mean(scores)
 
+def preprocess(X):
+    scaler = StandardScaler().fit(X)
+    return scaler.transform(X)
 
 def main():
     X_train, y_train, _ = get_data()
-
+    X_train = preprocess(X_train)
     # SVM cross validation
     svm_cv(X_train, y_train, kernel='linear', k=5)
 
