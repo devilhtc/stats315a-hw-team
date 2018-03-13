@@ -10,5 +10,5 @@ hw2q4 - Linear regression with step-forward model for subset selection.
 
 hw2q7 - LDA with original data, PCA and multilinear logistic regression.
 
-hw3q6 - data analysis challenge with housing loan data to predict default rate.
+hw3q6 - Data analysis challenge with housing loan data to predict default rate and confidence interval.
 

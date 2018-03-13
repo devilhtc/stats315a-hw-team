@@ -31,6 +31,7 @@ non_float_range_dict = {
 	'term': [' 3 yrs', ' 5 yrs']
 }
 
+# plot all the feature distribution in training file
 def plot_all_features(filename):
 	file_content = get_file_content(filename)
 	names = file_content[0][1:]
@@ -49,8 +50,9 @@ def plot_all_features(filename):
 		plot_feature(names[i], types[i], data[i][1], labels, axarr[r][c])
 	plt.savefig('all_features.png')
 
-
-
+# create bins around the numbers in bins
+# input: (n, )
+# output: (n+1, )
 def expand_bins(bins):
 	out = [0] * (len(bins) + 1)
 	step = bins[1] - bins[0]
