@@ -1,14 +1,108 @@
 from __future__ import print_function
 import numpy as np
 import unittest
-import datetime
+import time, datetime
+import matplotlib.pyplot as plt
 import os
 
 # constants
+
+# inputs
+data_dir = 'data/'
+train_filename = 'loan_train.csv'
+test_filename = 'loan_testx.csv'
+
+# outputs
 output_dir = 'outputs/'
 output_filename_base = 'loan_testy_'
 z = 1.645 # 90 percent interval z score
 divide = True
+
+# whether Plot All Features in test
+PAF = True
+
+# the range of each non-float names
+non_float_range_dict = {
+	'employment': ['NA', '< 1', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'],
+	'status': ['unchecked', 'partial', 'checked'],
+	'reason': ['business', 'cc', 'moving', 'solar', 'home', 'educ', 'renovation', 'boat', 'debt', 'medical', 'event', 'other', 'transport', 'holiday'],
+	'quality': ['q1', 'q2', 'q3', 'q4', 'q5', 'q5', 'q6', 'q7'],
+	'initial_list_status': ['a', 'b'],
+	'term': [' 3 yrs', ' 5 yrs']
+}
+
+def plot_all_features(filename):
+	file_content = get_file_content(filename)
+	names = file_content[0][1:]
+	types = ['string' if name in non_float_range_dict else 'float' for name in names]
+	contents = file_content[1:]
+	labels = [float(ele[0]) for ele in contents]
+	data = [(names[i], [(c[i + 1] if names[i] in non_float_range_dict else float(c[i + 1])) for c in contents]) for i in range(len(names))]
+	num_rows = 5
+	num_cols = 6
+	f, axarr = plt.subplots(num_rows, num_cols, figsize=(8, 6))
+	plt.tight_layout(pad = 0.2, w_pad = 0.2, h_pad = 0.9)
+	plt.subplots_adjust(left=0.05, right=0.97, top=0.95, bottom=0.05)
+	for i in range(len(names)):
+		r, c = i / num_cols, i % num_cols
+		#print(r, c)
+		plot_feature(names[i], types[i], data[i][1], labels, axarr[r][c])
+	plt.savefig('all_features.png')
+
+
+
+def expand_bins(bins):
+	out = [0] * (len(bins) + 1)
+	step = bins[1] - bins[0]
+	for i in range(len(bins)):
+		out[i] = bins[i] - 0.5 * step 
+		out[i + 1] = bins[i] + 0.5 * step 
+	return np.array(out)
+
+# generate on a subplot
+# values [n]
+# labels [n]
+def plot_feature(feature_name, feature_type, values, labels, axis):
+	# decide which kind of bin to use
+	n = len(values)
+	if feature_type == 'float':
+		# if it is float
+		num_bins = 15
+		a, b = min(values), max(values)
+		bins = np.arange(a, b, (b-a)/num_bins)
+		ticks = [('{0:.2f}'.format(bins[i]) if i % 3 == 0 else '') for i in range(len(bins))] 
+	else:
+		# if string, convert it to numbers
+		s = sorted(non_float_range_dict[feature_name])
+		ticks = s
+		value_dict = {s[i]: i for i in range(len(s))}
+		num_bins = len(s)
+		bins = np.arange(len(s))
+		counts = [0.0] * num_bins
+		values = [value_dict[ele] for ele in values]
+
+	# divide labels to 0 and 1
+	ebins = expand_bins(bins)
+	val0 = [values[i] for i in range(n) if labels[i] == 0.0]
+	data0, _ = np.histogram(np.array(val0), ebins)
+	val1 = [values[i] for i in range(n) if labels[i] == 1.0]
+	data1, _ = np.histogram(np.array(val1), ebins)
+	color0 = 'r'
+	color1 = 'b'
+	scatter_size = 40
+	title_fontsize = 9
+	tick_fontsize = 7
+	scatter_opacity = 0.2
+	plot_opacity = 0.7
+	#axis.subplots_adjust(left=0.05, right=0.97, top=0.95, bottom=0.03)
+	axis.plot(bins, data0, color = color0, alpha = plot_opacity)
+	axis.scatter(val0, np.zeros(len(val0)), s = scatter_size, facecolors = 'none', edgecolors=color0, alpha = scatter_opacity)
+	axis.plot(bins, data1, color = color1, alpha = plot_opacity)
+	axis.scatter(val1, np.zeros(len(val1)), s = scatter_size, facecolors = 'none', edgecolors=color1, alpha = scatter_opacity)
+	#axis.set_xticks(bins, ticks)
+	axis.tick_params(labelsize = tick_fontsize)
+	axis.text(0.5, 1.06, feature_name, horizontalalignment='center', fontsize = title_fontsize, color = '#303030', transform = axis.transAxes)
+	#plt.show()
 
 # input is all the default rates as an np array
 # output file in outputs/ with time stamp
@@ -82,15 +176,7 @@ def one_hot_range(name, range_list):
 # process a value by its name, returns a list of values
 # e.g. name: age, 18 -> [18],  or name: reason, 'travel': [0, 1, 0, 0, 0, 0]
 def process_val_by_name(val, name, method = 1):
-	# the range of each non-float names
-	non_float_range_dict = {
-		'employment': ['NA', '< 1', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'],
-		'status': ['unchecked', 'partial', 'checked'],
-		'reason': ['business', 'cc', 'moving', 'solar', 'home', 'educ', 'renovation', 'boat', 'debt', 'medical', 'event', 'other', 'transport', 'holiday'],
-		'quality': ['q1', 'q2', 'q3', 'q4', 'q5', 'q5', 'q6', 'q7'],
-		'initial_list_status': ['a', 'b'],
-		'term': [' 3 yrs', ' 5 yrs']
-	}
+
 
 	# process_dict1/2/3 ... defines how we process the data
 
@@ -207,6 +293,11 @@ def get_lines(filename):
 	f.close()
 	return lines
 
+def get_file_content(filename):
+	lines = get_lines(filename)
+	out = [split_line(line) for line in lines]
+	return out
+
 def write_lines(lines, filename):
 	f = open(filename, 'w+')
 	for line in lines:
@@ -262,6 +353,21 @@ class UtilTests(unittest.TestCase):
 	def test_write(self):
 		rates = np.arange(0.0, 1.0, 0.01)
 		output_to_file(rates)
+
+	def test_plot_feature1(self):
+		values = [3.0, 1.0, 1.0, 2.4, 2.2, 4.4]
+		labels = map(float,[0, 1, 0, 1, 0, 1])
+		#plot_feature('test', 'float', values, labels)
+
+	def test_plot_feature2(self):
+		values = ['a', 'b', 'c', 'a', 'b', 'b']
+		labels = map(float,[0, 1, 0, 1, 0, 1])
+		#plot_feature('test', 'string', values, labels)
+
+	def test_plot_all_features(self):
+		data_filename = data_dir + train_filename
+		if PAF:
+			plot_all_features(data_filename)
 
 def main():
 	unittest.main()
