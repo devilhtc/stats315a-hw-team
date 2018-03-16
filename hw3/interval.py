@@ -8,17 +8,33 @@ from sklearn.model_selection import KFold
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler
 
+import scipy as sp
+import scipy.stats
+
+
+
 def preprocess(X):
     scaler = StandardScaler().fit(X)
     return scaler.transform(X)
+
+def mean_confidence_interval(data, confidence=0.95):
+    a = 1.0*np.array(data)
+    n = len(a)
+    m, se = np.mean(a), scipy.stats.sem(a)
+    h = se * sp.stats.t._ppf((1+confidence)/2., n-1)
+    return m, m-h, m+h
+
+
 
 def main():
     X_train, y_train, X_test = get_data()
     X_train = preprocess(X_train)
     model = sklm.LogisticRegression()
+    #model = svm.SVC(C=1, kernel='linear')
+
     model.fit(X_train, y_train)
     scores = model.predict(X_test)
-    print(confidence_interval(scores))
+    print(mean_confidence_interval(scores))
 
 if __name__ == '__main__':
     main()
