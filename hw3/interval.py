@@ -8,11 +8,23 @@ from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import ElasticNet
 
 import scipy as sp
 import scipy.stats
 
-
+def cv(X, y, model, kf):
+    scores = []
+    for train_idx, test_idx in kf.split(X):
+        X_train, X_test = X[train_idx], X[test_idx]
+        y_train, y_test = y[train_idx], y[test_idx]
+        model.fit(X_train, y_train)
+        pred = model.predict(X_test)
+        pred = (pred > 0.5)
+        accuracy = accuracy_score(y_test, pred)
+        #print accuracy
+        scores.append(accuracy)
+    return np.mean(scores)
 
 def preprocess(X):
     scaler = StandardScaler().fit(X)
@@ -32,13 +44,19 @@ def gaussian_confidence_interval(data, confidence = 0.9):
 
 def main():
     X_train, y_train, X_test = get_data()
-    X_train = preprocess(X_train)
+    #X_train = preprocess(X_train)
     model = sklm.LogisticRegression()
     #model = svm.SVC(C=1, kernel='linear')
-
+    #model = sklm.SGDClassifier(loss = 'squared_hinge', penalty = 'l2')
+    #model = ElasticNet(random_state=5)
     model.fit(X_train, y_train)
-    scores = model.predict(X_test)
-    print(gaussian_confidence_interval(scores))
+    scores = model.predict_proba(X_test)[:, 1]
+    print(scores.shape)
+    output_to_file(scores)
+    kf = KFold(n_splits=5, shuffle=True, random_state=1234)
+    print "The model accuracy is\n", cv(X_train, y_train, model, kf)
+    print "\n"
+    print "The 90% confidence interval is\n", gaussian_confidence_interval(scores)
 
 if __name__ == '__main__':
     main()
