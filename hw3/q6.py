@@ -3,6 +3,7 @@ import numpy as np
 import utils as u
 import models as m
 
+
 # constants
 data_dir = 'data/'
 train_filename = 'loan_train.csv'
