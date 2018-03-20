@@ -45,14 +45,14 @@ def gaussian_confidence_interval(data, confidence = 0.9):
 def main():
     X_train, y_train, X_test = get_data()
     #X_train = preprocess(X_train)
-    model = sklm.LogisticRegression()
-    #model = svm.SVC(C=1, kernel='linear')
-    #model = sklm.SGDClassifier(loss = 'squared_hinge', penalty = 'l2')
+    #model = sklm.LogisticRegression()
+    ##model = svm.SVC(C=1, kernel='linear')
+    model = sklm.SGDClassifier(loss = 'modified_huber', penalty = 'l2')
     #model = ElasticNet(random_state=5)
     model.fit(X_train, y_train)
     scores = model.predict_proba(X_test)[:, 1]
-    print(scores.shape)
-    output_to_file(scores)
+    #print(scores.shape)
+    #output_to_file(scores)
     kf = KFold(n_splits=5, shuffle=True, random_state=1234)
     print "The model accuracy is\n", cv(X_train, y_train, model, kf)
     print "\n"
